@@ -1,0 +1,34 @@
+{
+  "name": "curve",
+  "version": "1.0.0",
+  "description": "A simple serverless application framework written in Node.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=local nodemon -e ts --exec 'ts-node' src/app.ts",
+    "prod": "tsc && pm2 start build/app.js",
+    "stop": "pm2 stop app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/realfrancisyan/curve.git"
+  },
+  "author": "Jiajun Yan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/realfrancisyan/curve/issues"
+  },
+  "homepage": "https://github.com/realfrancisyan/curve#readme",
+  "dependencies": {
+    "koa": "^2.13.0"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.11.4",
+    "@typescript-eslint/eslint-plugin": "^3.10.0",
+    "@typescript-eslint/parser": "^3.10.0",
+    "eslint": "^7.7.0",
+    "eslint-config-standard": "^14.1.1",
+    "nodemon": "^2.0.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2"
+  }
+}
