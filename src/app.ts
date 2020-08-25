@@ -1,10 +1,8 @@
 import * as Koa from 'koa';
+import applyApiMiddleware from './routes';
 
 const app = new Koa();
 const port = 3000;
 
-app.use(async (ctx) => {
-  ctx.body = 'Hello World';
-});
-
+applyApiMiddleware(app);
 app.listen(port);
