@@ -2,7 +2,9 @@ import * as koajwt from 'koa-jwt';
 import * as jwt from 'jsonwebtoken';
 import { secret } from '../config';
 
-const whitelist = [];
+const whitelist = [
+  /^\/collection/,
+];
 
 export const tokenValidation = (ctx, next) => {
   return next().catch((err) => {

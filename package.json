@@ -21,7 +21,8 @@
   "dependencies": {
     "koa": "^2.13.0",
     "koa-jwt": "^4.0.0",
-    "koa-router": "^9.4.0"
+    "koa-router": "^9.4.0",
+    "mongoose": "^5.10.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.5.0",
