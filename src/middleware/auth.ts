@@ -3,13 +3,13 @@ import * as jwt from 'jsonwebtoken';
 import { secret } from '../config';
 
 const whitelist = [
-  /^\/collection/,
+  /^\/user/,
 ];
 
 export const tokenValidation = (ctx, next) => {
   return next().catch((err) => {
-    if (err.status === 401) {
-      return ctx.throw(401, 'token is invalid');
+    if (err.status === 403) {
+      return ctx.throw(403, 'token is invalid');
     }
 
     throw err;
