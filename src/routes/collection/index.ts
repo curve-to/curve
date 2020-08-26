@@ -1,5 +1,10 @@
-import { create, showDocuments, showDocument, remove, edit } from './controller';
-import validate from '../../middleware/validate';
+import {
+  create,
+  showDocuments,
+  showDocument,
+  remove,
+  edit,
+} from './controller';
 
 const router = (Router) => {
   const router = new Router({ prefix: '/collection' });
