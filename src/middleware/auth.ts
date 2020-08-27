@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { Context } from 'koa';
 import { secret } from '../config';
 
-const whitelist = [/^\/user/, /\/collection\/p/];
+const whitelist = [/^\/user/, /\/collection/];
 
 export const tokenValidation = async (
   ctx: Context,
@@ -19,12 +19,11 @@ export const tokenValidation = async (
 };
 
 // Get account info by decoding
-export const decodeJwt = (
-  ctx: Context
-): string | { [key: string]: unknown } => {
-  if (!ctx.request.header.authorization) return null;
+export const decodeJwt = (ctx: Context): any => {
+  const { authorization } = ctx.request.header;
+  if (!authorization || !authorization.includes('bearer ')) return {};
 
-  const token = ctx.request.header.authorization;
+  const token = authorization.split(' ')[1];
   return jwt.decode(token);
 };
 

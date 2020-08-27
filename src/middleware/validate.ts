@@ -1,9 +1,11 @@
 import { Context } from 'koa';
+import { decodeJwt } from './auth';
+
 /**
  * Validate fields of a specific route
  * @param fields fields required by the route
  */
-const validate = (fields: string[]) => {
+export const validate = (fields: string[]) => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     if (!fields.length) return await next();
 
@@ -21,4 +23,30 @@ const validate = (fields: string[]) => {
   };
 };
 
-export default validate;
+/**
+ * Check user identity
+ * @param requiresAdmin check if the route requires admin
+ * user type: 0 normal user, 1 admin
+ */
+export const checkIdentity = ({
+  requiresAdmin = false,
+}: {
+  requiresAdmin: boolean;
+}) => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { role } = decodeJwt(ctx);
+
+    if (role == null) {
+      ctx.throw(403, 'user is not allowed to perform this action');
+    }
+
+    if (requiresAdmin && role !== 1) {
+      ctx.throw(
+        403,
+        'user is not allowed to perform this action. Are you an admin?'
+      );
+    }
+
+    return await next();
+  };
+};
