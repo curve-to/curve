@@ -44,7 +44,7 @@ export const register = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(401, 'invalid email address');
+    ctx.throw(403, 'invalid email address');
   }
 
   const _user = await UserModel.findOne({
@@ -52,7 +52,7 @@ export const register = async (ctx: Context): Promise<void> => {
   });
 
   if (_user) {
-    ctx.throw(401, 'the username has been taken');
+    ctx.throw(403, 'the username has been taken');
   }
 
   const uid = crypto.randomBytes(12).toString('hex');
@@ -113,7 +113,7 @@ export const login = async (ctx: Context): Promise<void> => {
     }
   }
 
-  ctx.throw(401, 'username and password mismatch');
+  ctx.throw(403, 'username and password mismatch');
 };
 
 /**
@@ -124,7 +124,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(401, 'invalid email address');
+    ctx.throw(403, 'invalid email address');
   }
 
   const _user = await UserModel.findOne({
@@ -138,6 +138,6 @@ export const changePassword = async (ctx: Context): Promise<void> => {
     await UserModel.findOneAndUpdate({ username }, update);
     ctx.body = 'ok';
   } else {
-    ctx.throw(401, `user ${username} is not found`);
+    ctx.throw(403, `user ${username} is not found`);
   }
 };
