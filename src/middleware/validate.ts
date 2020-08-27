@@ -1,9 +1,10 @@
+import { Context } from 'koa';
 /**
  * Validate fields of a specific route
  * @param fields fields required by the route
  */
 const validate = (fields: string[]) => {
-  return async (ctx, next) => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     if (!fields.length) return await next();
 
     const { method, query, body } = ctx.request;

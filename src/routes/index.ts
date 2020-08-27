@@ -4,7 +4,7 @@ import * as Router from 'koa-router';
 import * as Koa from 'koa';
 const baseName = path.basename(__filename);
 
-const applyApiMiddleware = (app: Koa) => {
+const applyApiMiddleware = (app: Koa): void => {
   const router = new Router();
 
   // Require all the folders and create a sub-router for each feature api

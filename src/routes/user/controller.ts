@@ -7,6 +7,15 @@ import { Context } from 'koa';
 import { user } from '../../config/database';
 import { secret } from '../../config';
 
+interface IUser extends mongoose.Document {
+  username: string;
+  password: string;
+  role: number;
+  uid: string;
+  createdAt: string;
+  email: string;
+}
+
 const schema = new mongoose.Schema({
   username: String,
   password: String,
@@ -16,7 +25,7 @@ const schema = new mongoose.Schema({
   email: String,
 });
 
-const UserModel = user.model('user', schema);
+const UserModel = user.model<IUser>('user', schema);
 
 /**
  * validate email address
@@ -31,14 +40,14 @@ const validateEmail = (email: string) => {
  * Register
  * @param ctx Context
  */
-export const register = async (ctx: Context) => {
+export const register = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
     ctx.throw(401, 'invalid email address');
   }
 
-  const _user: any = await UserModel.findOne({
+  const _user = await UserModel.findOne({
     username: username.toLowerCase(),
   });
 
@@ -68,11 +77,11 @@ export const register = async (ctx: Context) => {
  * Login
  * @param ctx Context
  */
-export const login = async (ctx: Context) => {
+export const login = async (ctx: Context): Promise<void> => {
   const { username, password } = ctx.request.body;
 
   // search user from database
-  const _user: any = await UserModel.findOne({
+  const _user = await UserModel.findOne({
     username: username.toLowerCase(),
   });
 
@@ -111,14 +120,14 @@ export const login = async (ctx: Context) => {
  * Change password
  * @param ctx Context
  */
-export const changePassword = async (ctx: Context) => {
+export const changePassword = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
     ctx.throw(401, 'invalid email address');
   }
 
-  const _user: any = await UserModel.findOne({
+  const _user = await UserModel.findOne({
     username: username.toLowerCase(),
     email: email.toLowerCase(),
   });

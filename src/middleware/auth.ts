@@ -1,14 +1,16 @@
 import * as koajwt from 'koa-jwt';
 import * as jwt from 'jsonwebtoken';
+import { Context } from 'koa';
 import { secret } from '../config';
 
-const whitelist = [
-  /^\/user/,
-];
+const whitelist = [/^\/user/];
 
-export const tokenValidation = (ctx, next) => {
+export const tokenValidation = async (
+  ctx: Context,
+  next: () => Promise<never>
+): Promise<void> => {
   return next().catch((err) => {
-    if (err.status === 403) {
+    if (err.status === 401) {
       return ctx.throw(403, 'token is invalid');
     }
 
@@ -17,13 +19,13 @@ export const tokenValidation = (ctx, next) => {
 };
 
 // Get account info by decoding
-export const decodeJwt = (ctx) => {
+export const decodeJwt = (
+  ctx: Context
+): string | { [key: string]: unknown } => {
   if (!ctx.request.header.authorization) return null;
 
   const token = ctx.request.header.authorization;
-  const decoded = jwt.decode(token);
-
-  return decoded;
+  return jwt.decode(token);
 };
 
 export const jwtMiddleware = koajwt({ secret }).unless({ path: whitelist });

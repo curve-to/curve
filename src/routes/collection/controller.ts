@@ -25,7 +25,7 @@ const dynamicModels = (collection: string) => {
  * Create a document
  * @param ctx Context
  */
-export const create = async (ctx: Context) => {
+export const create = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const model = dynamicModels(collection);
   const id = crypto.randomBytes(8).toString('hex'); // generate unique id
@@ -45,7 +45,7 @@ export const create = async (ctx: Context) => {
  * Get details of a document
  * @param ctx Context
  */
-export const showDocument = async (ctx: Context) => {
+export const showDocument = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const model = dynamicModels(collection);
   const record = await model.findOne({ id }, { _id: false, __v: false }).lean();
@@ -56,7 +56,7 @@ export const showDocument = async (ctx: Context) => {
  * Get documents of a collection
  * @param ctx Context
  */
-export const showDocuments = async (ctx: Context) => {
+export const showDocuments = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const model = dynamicModels(collection);
   const records = await model.find({}, { _id: false, __v: false }).lean();
@@ -67,7 +67,7 @@ export const showDocuments = async (ctx: Context) => {
  * Remove a document
  * @param ctx Context
  */
-export const remove = async (ctx: Context) => {
+export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const model = dynamicModels(collection);
   await model.find({ id }).deleteOne();
@@ -78,7 +78,7 @@ export const remove = async (ctx: Context) => {
  * Edit a document
  * @param ctx Context
  */
-export const edit = async (ctx: Context) => {
+export const edit = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const model = dynamicModels(collection);
   const params = {

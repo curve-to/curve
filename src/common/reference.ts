@@ -58,3 +58,5 @@ const responseStatus = {
   510: 'not extended',
   511: 'network authentication required',
 };
+
+export default responseStatus;
