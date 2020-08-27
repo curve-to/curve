@@ -36,10 +36,12 @@ export const checkIdentity = ({
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     const { role } = decodeJwt(ctx);
 
+    // if there's no token provided, or user has no role, throw an error
     if (role == null) {
       ctx.throw(403, 'user is not allowed to perform this action');
     }
 
+    // if the route requires admin privileges but user is not an admin, throw an error
     if (requiresAdmin && role !== 1) {
       ctx.throw(
         403,
