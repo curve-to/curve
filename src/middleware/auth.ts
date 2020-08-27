@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { Context } from 'koa';
 import { secret } from '../config';
 
-const whitelist = [/^\/user/];
+const whitelist = [/^\/user/, /\/collection\/p/];
 
 export const tokenValidation = async (
   ctx: Context,
