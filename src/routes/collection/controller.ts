@@ -36,9 +36,8 @@ export const create = async (ctx: Context): Promise<void> => {
   };
 
   const document = new model(params);
-  await document.save();
-
-  ctx.body = 'ok';
+  const response = await document.save();
+  ctx.body = response;
 };
 
 /**
@@ -59,7 +58,10 @@ export const showDocument = async (ctx: Context): Promise<void> => {
 export const showDocuments = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const model = dynamicModels(collection);
-  const records = await model.find({}, { _id: false, __v: false }).lean();
+  const records = await model
+    .find({}, { _id: false, __v: false })
+    .sort({ $natural: -1 })
+    .lean();
   ctx.body = records || [];
 };
 
@@ -86,6 +88,9 @@ export const edit = async (ctx: Context): Promise<void> => {
     updatedAt: moment().format('YYYY-MM-DD HH:mm:ss'),
   };
 
-  await model.findOneAndUpdate({ id }, params, { useFindAndModify: false });
-  ctx.body = 'edit';
+  const response = await model.findOneAndUpdate({ id }, params, {
+    useFindAndModify: false,
+    new: true,
+  });
+  ctx.body = response;
 };
