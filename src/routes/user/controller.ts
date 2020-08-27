@@ -138,6 +138,6 @@ export const changePassword = async (ctx: Context): Promise<void> => {
     await UserModel.findOneAndUpdate({ username }, update);
     ctx.body = 'ok';
   } else {
-    ctx.throw(403, `user ${username} is not found`);
+    ctx.throw(403, `user ${username} is not found or the email given and username mismatch`);
   }
 };
