@@ -15,3 +15,5 @@ export const bodyParserConfig = {
     maxFileSize: 500 * 1024 * 1024, // 5M
   },
 };
+
+export const bypassCorsList = [];
