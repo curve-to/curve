@@ -22,6 +22,24 @@ const dynamicModels = (collection: string) => {
 };
 
 /**
+ * Hide fields from results
+ * @param fieldsBySystem an array of fields to be excluded by system
+ * @param fieldsByUser string of fields to be excluded by user. Set via request
+ */
+const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
+  const fields = fieldsByUser
+    ? fieldsBySystem.concat(fieldsByUser.split(','))
+    : fieldsBySystem;
+
+  const excluded = fields.reduce((result, field) => {
+    result[field] = false;
+    return result;
+  }, {});
+
+  return excluded;
+};
+
+/**
  * Create a document
  * @param ctx Context
  */
@@ -44,10 +62,14 @@ export const create = async (ctx: Context): Promise<void> => {
  * Get details of a document
  * @param ctx Context
  */
-export const showDocument = async (ctx: Context): Promise<void> => {
+export const getDocument = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
+  const { exclude } = ctx.request.query;
+
   const model = dynamicModels(collection);
-  const record = await model.findOne({ id }, { _id: false, __v: false }).lean();
+  const record = await model
+    .findOne({ id }, excludeFields(['_id', '__v'], exclude))
+    .lean();
   ctx.body = record || {};
 };
 
@@ -55,11 +77,13 @@ export const showDocument = async (ctx: Context): Promise<void> => {
  * Get documents of a collection
  * @param ctx Context
  */
-export const showDocuments = async (ctx: Context): Promise<void> => {
+export const getCollection = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
+  const { exclude } = ctx.request.query;
+
   const model = dynamicModels(collection);
   const records = await model
-    .find({}, { _id: false, __v: false })
+    .find({}, excludeFields(['_id', '__v'], exclude))
     .sort({ $natural: -1 })
     .lean();
   ctx.body = records || [];
@@ -77,10 +101,10 @@ export const remove = async (ctx: Context): Promise<void> => {
 };
 
 /**
- * Edit a document
+ * Update a document
  * @param ctx Context
  */
-export const edit = async (ctx: Context): Promise<void> => {
+export const update = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const model = dynamicModels(collection);
   const params = {
