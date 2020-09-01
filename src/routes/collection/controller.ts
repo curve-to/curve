@@ -9,6 +9,7 @@ const models = {};
 /**
  * Create dynamic models
  * @param collection name of a collection
+ * @returns model
  */
 const dynamicModels = (collection: string) => {
   if (!models[collection]) {
@@ -24,7 +25,8 @@ const dynamicModels = (collection: string) => {
 /**
  * Hide fields from results
  * @param fieldsBySystem an array of fields to be excluded by system
- * @param fieldsByUser string of fields to be excluded by user. Set via request
+ * @param fieldsByUser string of fields to be excluded by user. Set via query params
+ * @returns an object of excluded fields
  */
 const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
   const fields = fieldsByUser
@@ -79,12 +81,19 @@ export const getDocument = async (ctx: Context): Promise<void> => {
  */
 export const getCollection = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { exclude } = ctx.request.query;
+  const {
+    exclude,
+    pageSize = 20,
+    pageNo = 1,
+    sortOrder = -1, // 1: ascending, -1: descending
+  } = ctx.request.query;
 
   const model = dynamicModels(collection);
   const records = await model
     .find({}, excludeFields(['_id', '__v'], exclude))
-    .sort({ $natural: -1 })
+    .sort({ $natural: sortOrder })
+    .skip((pageNo - 1) * +pageSize)
+    .limit(+pageSize)
     .lean();
   ctx.body = records || [];
 };
@@ -116,5 +125,16 @@ export const update = async (ctx: Context): Promise<void> => {
     useFindAndModify: false,
     new: true,
   });
+  ctx.body = response;
+};
+
+/**
+ * Get total count of a collection
+ * @param ctx Context
+ */
+export const count = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const model = dynamicModels(collection);
+  const response = await model.countDocuments();
   ctx.body = response;
 };

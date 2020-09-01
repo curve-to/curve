@@ -4,6 +4,7 @@ import {
   getDocument,
   remove,
   update,
+  count,
 } from './controller';
 import { checkIdentity } from '../../middleware/validate';
 
@@ -11,6 +12,7 @@ const router = (Router) => {
   const router = new Router({ prefix: '/collection' });
 
   router
+    .get('/:collection/count', count) // count of a collection
     .get('/:collection/:documentId', getDocument) // get details of a document
     .put(
       '/:collection/:documentId',
