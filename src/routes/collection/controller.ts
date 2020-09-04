@@ -71,7 +71,7 @@ export const create = async (ctx: Context): Promise<void> => {
  */
 export const getDocument = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
-  const { exclude } = ctx.request.query;
+  const { exclude } = ctx.request.query; // [string] fields to exclude, e.g. field1,field2,field3
 
   const model = dynamicModels(collection);
   const record = await model
@@ -87,7 +87,7 @@ export const getDocument = async (ctx: Context): Promise<void> => {
 export const getCollection = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const {
-    exclude,
+    exclude, // [string] fields to exclude, e.g. field1,field2,field3
     pageSize = 20,
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
