@@ -108,7 +108,7 @@ export const login = async (ctx: Context): Promise<void> => {
     if (hasUser) {
       const { username, role, uid } = _user;
       const token = jwt.sign({ username, role, uid }, secret, {
-        expiresIn: '365d',
+        expiresIn: '90d',
       });
 
       const result = { token, user: { name: username, role, uid } };
