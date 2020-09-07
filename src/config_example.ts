@@ -10,6 +10,7 @@ export const PASSWORD = '';
 // allow registration
 export const allowRegister = true;
 
+// body parser config
 export const bodyParserConfig = {
   multipart: true,
   urlencoded: true,
@@ -19,4 +20,5 @@ export const bodyParserConfig = {
   },
 };
 
+// whitelist for cors
 export const bypassCorsList = [];
