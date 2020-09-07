@@ -62,7 +62,7 @@ export const create = async (ctx: Context): Promise<void> => {
 
   const document = new model(params);
   const response = await document.save();
-  ctx.body = _.omit(response.toJSON(), ['_id']);
+  ctx.body = _.omit(response.toJSON(), ['_id', '__v']);
 };
 
 /**
@@ -75,7 +75,7 @@ export const getDocument = async (ctx: Context): Promise<void> => {
 
   const model = dynamicModels(collection);
   const record = await model
-    .findOne({ id }, excludeFields(['_id'], exclude))
+    .findOne({ id }, excludeFields(['_id', '__v'], exclude))
     .lean();
   ctx.body = record || {};
 };
@@ -95,7 +95,7 @@ export const getCollection = async (ctx: Context): Promise<void> => {
 
   const model = dynamicModels(collection);
   const records = await model
-    .find({}, excludeFields(['_id'], exclude))
+    .find({}, excludeFields(['_id', '__v'], exclude))
     .sort({ $natural: sortOrder })
     .skip((pageNo - 1) * +pageSize)
     .limit(+pageSize)
@@ -133,7 +133,7 @@ export const update = async (ctx: Context): Promise<void> => {
     useFindAndModify: false,
     new: true,
   });
-  ctx.body = _.omit(response.toJSON(), ['_id']);
+  ctx.body = _.omit(response.toJSON(), ['_id', '__v']);
 };
 
 /**
