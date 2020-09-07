@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import * as crypto from 'crypto';
 import { Context } from 'koa';
 import { user } from '../../config/database';
-import { secret } from '../../config';
+import { secret, allowRegister } from '../../config';
 
 interface IUser extends mongoose.Document {
   username: string;
@@ -41,6 +41,10 @@ const validateEmail = (email: string) => {
  * @param ctx Context
  */
 export const register = async (ctx: Context): Promise<void> => {
+  if (!allowRegister) {
+    ctx.throw(403, 'registration is not open');
+  }
+
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
@@ -138,6 +142,9 @@ export const changePassword = async (ctx: Context): Promise<void> => {
     await UserModel.findOneAndUpdate({ username }, update);
     ctx.body = 'ok';
   } else {
-    ctx.throw(403, `user ${username} is not found or the email given and username mismatch`);
+    ctx.throw(
+      403,
+      `user ${username} is not found or the email given and username mismatch`
+    );
   }
 };

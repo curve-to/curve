@@ -7,6 +7,9 @@ export const PORT = '';
 export const USER = '';
 export const PASSWORD = '';
 
+// allow registration
+export const allowRegister = true;
+
 export const bodyParserConfig = {
   multipart: true,
   urlencoded: true,
