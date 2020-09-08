@@ -1,7 +1,7 @@
 import * as koajwt from 'koa-jwt';
 import * as jwt from 'jsonwebtoken';
 import { Context } from 'koa';
-import { secret } from '../config';
+import config from '../config';
 
 const whitelist = [/^\/user/, /\/collection/];
 
@@ -27,4 +27,6 @@ export const decodeJwt = (ctx: Context): any => {
   return jwt.decode(token);
 };
 
-export const jwtMiddleware = koajwt({ secret }).unless({ path: whitelist });
+export const jwtMiddleware = koajwt({ secret: config.database.SECRET }).unless({
+  path: whitelist,
+});

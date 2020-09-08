@@ -1,5 +1,7 @@
 import * as mongoose from 'mongoose';
-import { ADDRESS, PORT, USER, PASSWORD } from '../config';
+import config from '../config';
+
+const { ADDRESS, PORT, USER, PASSWORD } = config.database;
 
 const createConn = (db: string) => {
   const url = `mongodb://${USER}:${PASSWORD}@${ADDRESS}:${PORT}/${db}?authSource=admin`;

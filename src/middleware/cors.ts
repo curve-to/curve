@@ -1,6 +1,6 @@
 import * as cors from '@koa/cors';
 import { Context } from 'koa';
-import { bypassCorsList } from '../config';
+import config from '../config';
 
 const corsOptions = {
   credentials: true,
@@ -8,8 +8,8 @@ const corsOptions = {
   origin: (ctx: Context) => {
     const url = ctx.header.origin;
 
-    for (const i in bypassCorsList) {
-      if (url.includes(bypassCorsList[i])) {
+    for (const i in config.bypassCorsList) {
+      if (url.includes(config.bypassCorsList[i])) {
         return url;
       }
     }

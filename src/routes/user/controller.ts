@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import * as crypto from 'crypto';
 import { Context } from 'koa';
 import { user } from '../../config/database';
-import { secret, allowRegister } from '../../config';
+import config from '../../config';
 
 interface IUser extends mongoose.Document {
   username: string;
@@ -41,7 +41,7 @@ const validateEmail = (email: string) => {
  * @param ctx Context
  */
 export const register = async (ctx: Context): Promise<void> => {
-  if (!allowRegister) {
+  if (!config.allowRegister) {
     ctx.throw(403, 'registration is not open');
   }
 
@@ -107,8 +107,8 @@ export const login = async (ctx: Context): Promise<void> => {
     // generate token if account info matches
     if (hasUser) {
       const { username, role, uid } = _user;
-      const token = jwt.sign({ username, role, uid }, secret, {
-        expiresIn: '90d',
+      const token = jwt.sign({ username, role, uid }, config.database.SECRET, {
+        expiresIn: config.tokenExpiration,
       });
 
       const result = { token, user: { name: username, role, uid } };
