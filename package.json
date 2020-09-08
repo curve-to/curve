@@ -4,7 +4,7 @@
   "description": "A simple serverless application framework written in Node.js",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=local nodemon -e ts --exec 'ts-node' src/app.ts",
+    "dev": "NODE_ENV=local nodemon -e ts --exec 'ts-node' src/app.ts",
     "prod": "tsc && pm2 start dist/app.js",
     "stop": "pm2 stop app"
   },
