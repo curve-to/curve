@@ -66,7 +66,7 @@ export const register = async (ctx: Context): Promise<void> => {
     username: username.toLowerCase(),
     password: hashedPassword,
     role: 0, // 0 normal user, 1 administrator
-    createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
+    createdAt: moment().unix(),
     uid,
     email,
   };
