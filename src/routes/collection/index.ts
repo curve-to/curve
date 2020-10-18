@@ -1,9 +1,11 @@
 import {
   create,
+  createMany,
   getCollection,
   getDocument,
   remove,
   update,
+  updateMany,
   count,
   // convertToUnix,
 } from './controller';
@@ -17,6 +19,11 @@ const router = Router => {
     .get('/:collection/count', count) // get count of a collection
     .get('/:collection/:documentId', getDocument) // get details of a document
     .put(
+      '/:collection/updateMany',
+      // checkIdentity({ requiresAdmin: true }),
+      updateMany
+    ) // update multiple documents
+    .put(
       '/:collection/:documentId',
       checkIdentity({ requiresAdmin: true }),
       update
@@ -27,6 +34,11 @@ const router = Router => {
       remove
     ) // remove a document
     .post('/:collection', checkIdentity({ requiresAdmin: true }), create) // create a document
+    .post(
+      '/:collection/createMany',
+      checkIdentity({ requiresAdmin: true }),
+      createMany
+    ) // create multiple documents
     .get('/:collection', getCollection); // get documents of a collection
 
   return router;

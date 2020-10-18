@@ -51,7 +51,7 @@ export const create = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { uid } = decodeJwt(ctx);
 
-  const model = dynamicModels(collection);
+  const Model = dynamicModels(collection);
   const id = crypto.randomBytes(8).toString('hex'); // generate unique id
 
   const params = {
@@ -61,9 +61,37 @@ export const create = async (ctx: Context): Promise<void> => {
     createdBy: uid,
   };
 
-  const document = new model(params);
-  const response = await document.save();
+  const response = await new Model(params).save();
   ctx.body = _.omit(response.toJSON(), ['_id', '__v']);
+};
+
+/**
+ * Create multiple documents
+ * @param ctx Context
+ */
+export const createMany = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const { body } = ctx.request;
+  const { uid } = decodeJwt(ctx);
+
+  const Model = dynamicModels(collection);
+
+  const documents = body.map((fields: genericObject) => {
+    const id = crypto.randomBytes(8).toString('hex'); // generate unique id
+    const params = {
+      id,
+      ...fields,
+      createdAt: moment().unix(),
+      createdBy: uid,
+    };
+
+    return params;
+  });
+
+  const response = await Model.insertMany(documents);
+  ctx.body = response.map((item: genericObject) =>
+    _.omit(item.toJSON(), ['_id', '__v'])
+  );
 };
 
 /**
@@ -74,10 +102,11 @@ export const getDocument = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const { exclude } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
-  const model = dynamicModels(collection);
-  const record = await model
-    .findOne({ id }, excludeFields(['_id', '__v'], exclude))
-    .lean();
+  const Model = dynamicModels(collection);
+  const record = await Model.findOne(
+    { id },
+    excludeFields(['_id', '__v'], exclude)
+  ).lean();
   ctx.body = record || {};
 };
 
@@ -95,9 +124,11 @@ export const getCollection = async (ctx: Context): Promise<void> => {
     query = JSON.stringify({}),
   } = ctx.request.query;
 
-  const model = dynamicModels(collection);
-  const records = await model
-    .find(JSON.parse(query), excludeFields(['_id', '__v'], exclude))
+  const Model = dynamicModels(collection);
+  const records = await Model.find(
+    JSON.parse(query),
+    excludeFields(['_id', '__v'], exclude)
+  )
     .sort({ $natural: sortOrder })
     .skip((pageNo - 1) * +pageSize)
     .limit(+pageSize)
@@ -111,8 +142,8 @@ export const getCollection = async (ctx: Context): Promise<void> => {
  */
 export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
-  const model = dynamicModels(collection);
-  await model.find({ id }).deleteOne();
+  const Model = dynamicModels(collection);
+  await Model.find({ id }).deleteOne();
   ctx.body = 'ok';
 };
 
@@ -122,20 +153,48 @@ export const remove = async (ctx: Context): Promise<void> => {
  */
 export const update = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
+  const { data = {} } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
-  const model = dynamicModels(collection);
-  const params = {
-    ...ctx.request.body,
-    updatedAt: moment().unix(),
-    updatedBy: uid,
-  };
+  const Model = dynamicModels(collection);
+  const update: genericObject = [
+    {
+      $set: Object.assign(data.$set, {
+        updatedAt: moment().unix(),
+        updatedBy: uid,
+      }),
+    },
+  ];
 
-  const response = await model.findOneAndUpdate({ id }, params, {
-    useFindAndModify: false,
-    new: true,
-  });
-  ctx.body = _.omit(response.toJSON(), ['_id', '__v']);
+  if (data.$unset.length) update.push({ $unset: data.$unset });
+
+  const response = await Model.updateOne({ id }, update);
+  ctx.body = response;
+};
+
+/**
+ * Update multiple documents
+ * @param ctx Context
+ */
+export const updateMany = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const { query = {}, data = {} } = ctx.request.body;
+  const { uid } = decodeJwt(ctx);
+
+  const Model = dynamicModels(collection);
+  const update: genericObject = [
+    {
+      $set: Object.assign(data.$set, {
+        updatedAt: moment().unix(),
+        updatedBy: uid,
+      }),
+    },
+  ];
+
+  if (data.$unset.length) update.push({ $unset: data.$unset });
+
+  const response = await Model.updateMany(query, update);
+  ctx.body = response;
 };
 
 /**
@@ -144,15 +203,15 @@ export const update = async (ctx: Context): Promise<void> => {
  */
 export const count = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const model = dynamicModels(collection);
-  const response = await model.countDocuments();
+  const Model = dynamicModels(collection);
+  const response = await Model.countDocuments();
   ctx.body = response;
 };
 
 // export const convertToUnix = async (ctx: Context): Promise<void> => {
 //   const { collection } = ctx.params;
-//   const model = dynamicModels(collection);
-//   const response = await model
+//   const Model = dynamicModels(collection);
+//   const response = await Model
 //     .find()
 //     .lean()
 //     .exec((err, docs) => {
@@ -160,7 +219,7 @@ export const count = async (ctx: Context): Promise<void> => {
 //         // if (!doc.updatedAt || !Number.isInteger(+doc.updatedAt)) {
 //         //   console.log(doc);
 //         // }
-//         const res = await model.update(
+//         const res = await Model.update(
 //           { id: doc.id },
 //           {
 //             createdAt: moment(doc.createdAt).unix(),
