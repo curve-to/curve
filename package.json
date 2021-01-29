@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "NODE_ENV=local nodemon -e ts --exec 'ts-node' --files src/app.ts",
+    "dev:windows": "SET NODE_ENV=local && nodemon -e ts --exec ts-node --files src/app.ts",
     "prod": "tsc && pm2 start dist/app.js",
     "stop": "pm2 stop app"
   },

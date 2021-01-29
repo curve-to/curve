@@ -28,7 +28,7 @@ const schema = new mongoose.Schema({
   email: String,
 });
 
-const UserModel = user.model<IUser>('user', schema);
+const UserModel = user.model('user', schema);
 
 /**
  * validate email address
