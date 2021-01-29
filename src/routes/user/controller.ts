@@ -17,7 +17,7 @@ interface IUser extends mongoose.Document {
 	uid: string;
 	createdAt: string;
 	email: string;
-  openid: String;
+	openid: String;
 }
 
 const schema = new mongoose.Schema({
@@ -26,8 +26,8 @@ const schema = new mongoose.Schema({
 	role: Number,
 	uid: String,
 	createdAt: String,
-  email: String,
-  openid: String,
+	email: String,
+	openid: String,
 });
 
 const UserModel = user.model('user', schema);
@@ -75,9 +75,9 @@ const registerAsNewUser = async ({
 			openid,
 			...data,
 		};
-  }
-  
-  console.log('data - ', data);
+	}
+
+	console.log('data - ', data);
 
 	const newUser = new UserModel(data);
 	await newUser.save();
@@ -207,7 +207,12 @@ export const changePassword = async (ctx: Context): Promise<void> => {
 export const signInWithWeChat = async (ctx: Context): Promise<void> => {
 	const { code } = ctx.query;
 
-	const { appId, appSecret } = config;
+	const appId = ctx.get('appid');
+	const appSecret = config.appIds[appId];
+
+	if (!appId || !appSecret) {
+		ctx.throw(403, `App Id is not found. Make sure your app have been registered.`);
+	}
 
 	const query = `?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
 	const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
@@ -216,13 +221,13 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
 	const { errcode, errmsg, openid } = await response.json();
 
 	if (openid) {
-    const user = await UserModel.findOne({ openid });
+		const user = await UserModel.findOne({ openid });
 		// If user is not found, create a new one
 		if (!user) {
 			await registerAsNewUser({ openid });
 		}
 
-    const _user = user || (await UserModel.findOne({ openid }));
+		const _user = user || (await UserModel.findOne({ openid }));
 		const result = generateJWTToken(_user);
 		ctx.body = result;
 	} else {
