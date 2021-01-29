@@ -3,9 +3,11 @@ import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import * as moment from 'moment';
 import * as crypto from 'crypto';
+import fetch from 'node-fetch';
 import { Context } from 'koa';
 import { user } from '../../config/database';
 import config from '../../config';
+import { THIRD_PARTY_URLS } from '../../config/constants';
 
 interface IUser extends mongoose.Document {
   username: string;
@@ -96,7 +98,7 @@ export const login = async (ctx: Context): Promise<void> => {
       bcrypt.compare(password, _user.password, (err, result) => {
         if (err) reject(err);
         hasUser = result;
-        resolve();
+        resolve(!!hasUser);
       });
     });
   };
@@ -146,5 +148,31 @@ export const changePassword = async (ctx: Context): Promise<void> => {
       403,
       `user ${username} is not found or the email given and username mismatch`
     );
+  }
+};
+
+/**
+ * 微信小程序登录
+ * @param ctx Context
+ */
+export const signInWithWechat = async (ctx: Context) => {
+  const { code } = ctx.request.body;
+  const { appId, appSecret } = config;
+
+  const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+  const response = await fetch(code2Session);
+  const { errcode, errmsg, session_key, openid, unionid } = JSON.parse(
+    response.body
+  );
+
+  if (errcode === 0) {
+    // 保存到数据表
+    if (openid) {
+      // 如果有该用户，则直接拿里面的数据
+    } else {
+      // 否则，新建一个用户
+    }
+  } else {
+    ctx.throw(403, `登录失败。errcode: ${errcode}. ${errmsg}`);
   }
 };

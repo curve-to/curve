@@ -207,28 +207,3 @@ export const count = async (ctx: Context): Promise<void> => {
   const response = await Model.countDocuments();
   ctx.body = response;
 };
-
-// export const convertToUnix = async (ctx: Context): Promise<void> => {
-//   const { collection } = ctx.params;
-//   const Model = dynamicModels(collection);
-//   const response = await Model
-//     .find()
-//     .lean()
-//     .exec((err, docs) => {
-//       docs.forEach(async doc => {
-//         // if (!doc.updatedAt || !Number.isInteger(+doc.updatedAt)) {
-//         //   console.log(doc);
-//         // }
-//         const res = await Model.update(
-//           { id: doc.id },
-//           {
-//             createdAt: moment(doc.createdAt).unix(),
-//             updatedAt: moment(doc.updatedAt).unix(),
-//           }
-//         );
-//         console.log('success', res);
-//       });
-//       console.log('done');
-//     });
-//   ctx.body = response;
-// };

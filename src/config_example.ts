@@ -17,4 +17,6 @@ export default {
   },
   bypassCorsList: [], // whitelist for cors
   tokenExpiration: '90d',
+  appId: '', // WeChat mini program appId
+  appSecret: '', // WeChat mini program app secret
 };

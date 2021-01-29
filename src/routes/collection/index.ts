@@ -7,7 +7,6 @@ import {
   update,
   updateMany,
   count,
-  // convertToUnix,
 } from './controller';
 import { checkIdentity } from '../../middleware/validate';
 
@@ -15,7 +14,6 @@ const router = Router => {
   const router = new Router({ prefix: '/collection' });
 
   router
-    // .get('/convert/:collection', convertToUnix)
     .get('/:collection/count', count) // get count of a collection
     .get('/:collection/:documentId', getDocument) // get details of a document
     .put(
