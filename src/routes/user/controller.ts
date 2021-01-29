@@ -11,21 +11,23 @@ import config from '../../config';
 import { THIRD_PARTY_URLS } from '../../config/constants';
 
 interface IUser extends mongoose.Document {
-  username: string;
-  password: string;
-  role: number;
-  uid: string;
-  createdAt: string;
-  email: string;
+	username: string;
+	password: string;
+	role: number;
+	uid: string;
+	createdAt: string;
+	email: string;
+  openid: String;
 }
 
 const schema = new mongoose.Schema({
-  username: String,
-  password: String,
-  role: Number,
-  uid: String,
-  createdAt: String,
+	username: String,
+	password: String,
+	role: Number,
+	uid: String,
+	createdAt: String,
   email: String,
+  openid: String,
 });
 
 const UserModel = user.model('user', schema);
@@ -35,8 +37,8 @@ const UserModel = user.model('user', schema);
  * @param email email address
  */
 const validateEmail = (email: string) => {
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
+	const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(String(email).toLowerCase());
 };
 
 /**
@@ -46,37 +48,39 @@ const validateEmail = (email: string) => {
  * @param email required when using username && password as login method
  */
 const registerAsNewUser = async ({
-  username = '',
-  hashedPassword = null,
-  email = '',
-  openid = '',
+	username = '',
+	hashedPassword = null,
+	email = '',
+	openid = '',
 } = {}) => {
-  const uid = crypto.randomBytes(12).toString('hex');
+	const uid = crypto.randomBytes(12).toString('hex');
 
-  let data: genericObject = {
-    role: 0, // 0 normal user, 1 administrator
-    createdAt: moment().unix(),
-    uid,
-  };
+	let data: genericObject = {
+		role: 0, // 0 normal user, 1 administrator
+		createdAt: moment().unix(),
+		uid,
+	};
 
-  // register with username and password
-  if (!openid) {
-    data = {
-      username: username.toLowerCase(),
-      password: hashedPassword,
-      email,
-      ...data,
-    };
-  } else {
-    // register with WeChat open id
-    data = {
-      openid,
-      ...data,
-    };
+	// register with username and password
+	if (!openid) {
+		data = {
+			username: username.toLowerCase(),
+			password: hashedPassword,
+			email,
+			...data,
+		};
+	} else {
+		// register with WeChat open id
+		data = {
+			openid,
+			...data,
+		};
   }
+  
+  console.log('data - ', data);
 
-  const newUser = new UserModel(data);
-  await newUser.save();
+	const newUser = new UserModel(data);
+	await newUser.save();
 };
 
 /**
@@ -86,17 +90,17 @@ const registerAsNewUser = async ({
  * @param uid
  */
 const generateJWTToken = (user: genericObject) => {
-  const { role, uid } = user;
-  const token = jwt.sign({ role, uid }, config.database.SECRET, {
-    expiresIn: config.tokenExpiration,
-  });
+	const { role, uid } = user;
+	const token = jwt.sign({ role, uid }, config.database.SECRET, {
+		expiresIn: config.tokenExpiration,
+	});
 
-  const result = {
-    token,
-    user: _.omit(user.toJSON(), ['_id', '__v', 'password']),
-  };
+	const result = {
+		token,
+		user: _.omit(user.toJSON(), ['_id', '__v', 'password']),
+	};
 
-  return result;
+	return result;
 };
 
 /**
@@ -104,29 +108,29 @@ const generateJWTToken = (user: genericObject) => {
  * @param ctx Context
  */
 export const register = async (ctx: Context): Promise<void> => {
-  if (!config.registrationIsOpen) {
-    ctx.throw(403, 'registration is not open');
-  }
+	if (!config.registrationIsOpen) {
+		ctx.throw(403, 'registration is not open');
+	}
 
-  const { username, password, email } = ctx.request.body;
+	const { username, password, email } = ctx.request.body;
 
-  if (!validateEmail(email)) {
-    ctx.throw(403, 'invalid email address');
-  }
+	if (!validateEmail(email)) {
+		ctx.throw(403, 'invalid email address');
+	}
 
-  const _user = await UserModel.findOne({
-    username: username.toLowerCase(),
-  });
+	const _user = await UserModel.findOne({
+		username: username.toLowerCase(),
+	});
 
-  if (_user) {
-    ctx.throw(403, 'the username has been taken');
-  }
+	if (_user) {
+		ctx.throw(403, 'the username has been taken');
+	}
 
-  const hashedPassword = bcrypt.hashSync(password, 10);
+	const hashedPassword = bcrypt.hashSync(password, 10);
 
-  await registerAsNewUser({ username, hashedPassword });
+	await registerAsNewUser({ username, hashedPassword });
 
-  ctx.body = `user ${username} has successfully registered`;
+	ctx.body = `user ${username} has successfully registered`;
 };
 
 /**
@@ -134,37 +138,37 @@ export const register = async (ctx: Context): Promise<void> => {
  * @param ctx Context
  */
 export const login = async (ctx: Context): Promise<void> => {
-  const { username, password } = ctx.request.body;
+	const { username, password } = ctx.request.body;
 
-  // search user from database
-  const _user = await UserModel.findOne({
-    username: username.toLowerCase(),
-  });
+	// search user from database
+	const _user = await UserModel.findOne({
+		username: username.toLowerCase(),
+	});
 
-  // validate password
-  let hasUser = false;
-  const validateUser = () => {
-    return new Promise((resolve, reject) => {
-      bcrypt.compare(password, _user.password, (err, result) => {
-        if (err) reject(err);
-        hasUser = result;
-        resolve(!!hasUser);
-      });
-    });
-  };
+	// validate password
+	let hasUser = false;
+	const validateUser = () => {
+		return new Promise((resolve, reject) => {
+			bcrypt.compare(password, _user.password, (err, result) => {
+				if (err) reject(err);
+				hasUser = result;
+				resolve(!!hasUser);
+			});
+		});
+	};
 
-  if (_user) {
-    await validateUser();
+	if (_user) {
+		await validateUser();
 
-    // generate token if account info matches
-    if (hasUser) {
-      const result = generateJWTToken(_user);
-      ctx.body = result;
-      return;
-    }
-  }
+		// generate token if account info matches
+		if (hasUser) {
+			const result = generateJWTToken(_user);
+			ctx.body = result;
+			return;
+		}
+	}
 
-  ctx.throw(403, 'username and password mismatch');
+	ctx.throw(403, 'username and password mismatch');
 };
 
 /**
@@ -172,54 +176,56 @@ export const login = async (ctx: Context): Promise<void> => {
  * @param ctx Context
  */
 export const changePassword = async (ctx: Context): Promise<void> => {
-  const { username, password, email } = ctx.request.body;
+	const { username, password, email } = ctx.request.body;
 
-  if (!validateEmail(email)) {
-    ctx.throw(403, 'invalid email address');
-  }
+	if (!validateEmail(email)) {
+		ctx.throw(403, 'invalid email address');
+	}
 
-  const _user = await UserModel.findOne({
-    username: username.toLowerCase(),
-    email: email.toLowerCase(),
-  });
+	const _user = await UserModel.findOne({
+		username: username.toLowerCase(),
+		email: email.toLowerCase(),
+	});
 
-  if (_user) {
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    const update = { password: hashedPassword };
-    await UserModel.findOneAndUpdate({ username }, update);
-    ctx.body = 'ok';
-  } else {
-    ctx.throw(
-      403,
-      `user ${username} is not found or the email given and username mismatch`
-    );
-  }
+	if (_user) {
+		const hashedPassword = bcrypt.hashSync(password, 10);
+		const update = { password: hashedPassword };
+		await UserModel.findOneAndUpdate({ username }, update);
+		ctx.body = 'ok';
+	} else {
+		ctx.throw(
+			403,
+			`user ${username} is not found or the email given and username mismatch`
+		);
+	}
 };
 
 /**
- * 微信小程序登录
+ * Sign in with WeChat
  * @param ctx Context
  */
 export const signInWithWeChat = async (ctx: Context): Promise<void> => {
-  const { code } = ctx.request.body;
-  const { appId, appSecret } = config;
+	const { code } = ctx.query;
 
-  const query = `?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
-  const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
-  const response = await fetch(code2Session);
-  const { errcode, errmsg, openid } = JSON.parse(response.body);
+	const { appId, appSecret } = config;
 
-  if (errcode === 0) {
+	const query = `?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+	const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
+	const response = await fetch(code2Session);
+
+	const { errcode, errmsg, openid } = await response.json();
+
+	if (openid) {
     const user = await UserModel.findOne({ openid });
-    // 如果没有该用户，则新建一个用户
-    if (!user) {
-      await registerAsNewUser({ openid });
-    }
+		// If user is not found, create a new one
+		if (!user) {
+			await registerAsNewUser({ openid });
+		}
 
     const _user = user || (await UserModel.findOne({ openid }));
-    const result = generateJWTToken(_user);
-    ctx.body = result;
-  } else {
-    ctx.throw(403, `登录失败。errcode: ${errcode}. ${errmsg}`);
-  }
+		const result = generateJWTToken(_user);
+		ctx.body = result;
+	} else {
+		ctx.throw(403, `Login failed. errcode: ${errcode}. ${errmsg}`);
+	}
 };
