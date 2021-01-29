@@ -155,7 +155,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
  * 微信小程序登录
  * @param ctx Context
  */
-export const signInWithWechat = async (ctx: Context) => {
+export const signInWithWeChat = async (ctx: Context) => {
   const { code } = ctx.request.body;
   const { appId, appSecret } = config;
 
