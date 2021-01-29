@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import * as moment from 'moment';
 import * as crypto from 'crypto';
+import * as _ from 'underscore';
 import fetch from 'node-fetch';
 import { Context } from 'koa';
 import { user } from '../../config/database';
@@ -39,11 +40,72 @@ const validateEmail = (email: string) => {
 };
 
 /**
+ * Register as new user
+ * @param username username
+ * @param hashedPassword required when using username && password as login method
+ * @param email required when using username && password as login method
+ */
+const registerAsNewUser = async ({
+  username = '',
+  hashedPassword = null,
+  email = '',
+  openid = '',
+} = {}) => {
+  const uid = crypto.randomBytes(12).toString('hex');
+
+  let data: genericObject = {
+    role: 0, // 0 normal user, 1 administrator
+    createdAt: moment().unix(),
+    uid,
+  };
+
+  // register with username and password
+  if (!openid) {
+    data = {
+      username: username.toLowerCase(),
+      password: hashedPassword,
+      email,
+      ...data,
+    };
+  } else {
+    // register with WeChat open id
+    data = {
+      openid,
+      ...data,
+    };
+  }
+
+  const newUser = new UserModel(data);
+  await newUser.save();
+};
+
+/**
+ * Generate JWT token
+ * @param username
+ * @param role
+ * @param uid
+ */
+const generateJWTToken = async ({ role, uid }) => {
+  const token = jwt.sign({ role, uid }, config.database.SECRET, {
+    expiresIn: config.tokenExpiration,
+  });
+
+  const user = await UserModel.findOne({ uid });
+
+  const result = {
+    token,
+    user: _.omit(user.toJSON(), ['_id', '__v', 'password']),
+  };
+
+  return result;
+};
+
+/**
  * Register
  * @param ctx Context
  */
 export const register = async (ctx: Context): Promise<void> => {
-  if (!config.allowRegister) {
+  if (!config.registrationIsOpen) {
     ctx.throw(403, 'registration is not open');
   }
 
@@ -61,20 +123,9 @@ export const register = async (ctx: Context): Promise<void> => {
     ctx.throw(403, 'the username has been taken');
   }
 
-  const uid = crypto.randomBytes(12).toString('hex');
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  const data = {
-    username: username.toLowerCase(),
-    password: hashedPassword,
-    role: 0, // 0 normal user, 1 administrator
-    createdAt: moment().unix(),
-    uid,
-    email,
-  };
-
-  const newUser = new UserModel(data);
-  await newUser.save();
+  await registerAsNewUser({ username, hashedPassword });
 
   ctx.body = `user ${username} has successfully registered`;
 };
@@ -108,12 +159,9 @@ export const login = async (ctx: Context): Promise<void> => {
 
     // generate token if account info matches
     if (hasUser) {
-      const { username, role, uid } = _user;
-      const token = jwt.sign({ username, role, uid }, config.database.SECRET, {
-        expiresIn: config.tokenExpiration,
-      });
-
-      const result = { token, user: { name: username, role, uid } };
+      const { role, uid } = _user;
+      console.log(uid);
+      const result = await generateJWTToken({ role, uid });
       ctx.body = result;
       return;
     }
@@ -155,23 +203,25 @@ export const changePassword = async (ctx: Context): Promise<void> => {
  * 微信小程序登录
  * @param ctx Context
  */
-export const signInWithWeChat = async (ctx: Context) => {
+export const signInWithWeChat = async (ctx: Context): Promise<void> => {
   const { code } = ctx.request.body;
   const { appId, appSecret } = config;
 
-  const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+  const query = `?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+  const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
   const response = await fetch(code2Session);
-  const { errcode, errmsg, session_key, openid, unionid } = JSON.parse(
-    response.body
-  );
+  const { errcode, errmsg, openid } = JSON.parse(response.body);
 
   if (errcode === 0) {
-    // 保存到数据表
-    if (openid) {
-      // 如果有该用户，则直接拿里面的数据
-    } else {
-      // 否则，新建一个用户
+    const user = await UserModel.findOne({ openid });
+    // 如果没有该用户，则新建一个用户
+    if (!user) {
+      await registerAsNewUser({ openid });
     }
+
+    const { role, uid } = user || await UserModel.findOne({ openid });
+    const result = await generateJWTToken({ role, uid });
+    ctx.body = result;
   } else {
     ctx.throw(403, `登录失败。errcode: ${errcode}. ${errmsg}`);
   }

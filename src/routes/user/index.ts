@@ -13,7 +13,7 @@ const router = Router => {
     .post('/login', validate(['username', 'password']), login)
     .post('/register', validate(['username', 'password', 'email']), register)
     .put('/change', validate(['username', 'password', 'email']), changePassword)
-    .get('/signInWithWeChat', validate['code'], signInWithWeChat);
+    .get('/signInWithWeChat', validate(['code']), signInWithWeChat);
 
   return router;
 };

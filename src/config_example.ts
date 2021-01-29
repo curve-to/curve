@@ -6,7 +6,7 @@ export default {
     USER: '',
     PASSWORD: '',
   },
-  allowRegister: false, // allow registration
+  registrationIsOpen: false, // allow registration
   bodyParserConfig: {
     multipart: true,
     urlencoded: true,
