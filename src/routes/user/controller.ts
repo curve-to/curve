@@ -85,12 +85,11 @@ const registerAsNewUser = async ({
  * @param role
  * @param uid
  */
-const generateJWTToken = async ({ role, uid }) => {
+const generateJWTToken = (user: genericObject) => {
+  const { role, uid } = user;
   const token = jwt.sign({ role, uid }, config.database.SECRET, {
     expiresIn: config.tokenExpiration,
   });
-
-  const user = await UserModel.findOne({ uid });
 
   const result = {
     token,
@@ -159,9 +158,7 @@ export const login = async (ctx: Context): Promise<void> => {
 
     // generate token if account info matches
     if (hasUser) {
-      const { role, uid } = _user;
-      console.log(uid);
-      const result = await generateJWTToken({ role, uid });
+      const result = generateJWTToken(_user);
       ctx.body = result;
       return;
     }
@@ -219,8 +216,8 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
       await registerAsNewUser({ openid });
     }
 
-    const { role, uid } = user || await UserModel.findOne({ openid });
-    const result = await generateJWTToken({ role, uid });
+    const _user = user || (await UserModel.findOne({ openid }));
+    const result = generateJWTToken(_user);
     ctx.body = result;
   } else {
     ctx.throw(403, `登录失败。errcode: ${errcode}. ${errmsg}`);
