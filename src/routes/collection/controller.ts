@@ -157,7 +157,7 @@ export const update = async (ctx: Context): Promise<void> => {
   const { uid } = decodeJwt(ctx);
 
   const Model = dynamicModels(collection);
-  const update: genericObject = [
+  const update: genericObject[] = [
     {
       $set: Object.assign(data.$set, {
         updatedAt: moment().unix(),

@@ -3,6 +3,7 @@ import {
   register,
   changePassword,
   signInWithWeChat,
+  updateWeChatUserInfo,
 } from './controller';
 import { validate } from '../../middleware/validate';
 
@@ -13,7 +14,8 @@ const router = Router => {
     .post('/login', validate(['username', 'password']), login)
     .post('/register', validate(['username', 'password', 'email']), register)
     .put('/change', validate(['username', 'password', 'email']), changePassword)
-    .get('/signInWithWeChat', validate(['code']), signInWithWeChat);
+    .get('/signInWithWeChat', validate(['code']), signInWithWeChat)
+    .post('/updateWeChatUserInfo', validate(['userInfo']), updateWeChatUserInfo);
 
   return router;
 };
