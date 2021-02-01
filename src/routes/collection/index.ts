@@ -18,7 +18,7 @@ const router = Router => {
     .get('/:collection/:documentId', getDocument) // get details of a document
     .put(
       '/:collection/updateMany',
-      // checkIdentity({ requiresAdmin: true }),
+      checkIdentity({ requiresAdmin: true }),
       updateMany
     ) // update multiple documents
     .put(
