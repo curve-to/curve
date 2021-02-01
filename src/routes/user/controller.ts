@@ -249,13 +249,16 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
     ctx.throw(403, 'User is not found.');
   }
 
-  const update: genericObject = {
-    $set: Object.assign(userInfo, {
-      updatedAt: moment().unix(),
-      updatedBy: uid,
-    }),
-  };
+  const update: genericObject = [
+    {
+      $set: Object.assign(userInfo, {
+        updatedAt: moment().unix(),
+        updatedBy: uid,
+      }),
+    },
+  ];
 
-  const response = await UserModel.updateOne({ uid }, update);
-  ctx.body = response;
+  await UserModel.updateOne({ uid }, update);
+  const user = await UserModel.findOne({ uid });
+  ctx.body = _.omit(user.toJSON(), ['_id', '__v', 'password']);
 };
