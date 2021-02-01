@@ -5,6 +5,8 @@ import * as _ from 'underscore';
 import { Context } from 'koa';
 import { collections } from '../../config/database';
 import { decodeJwt } from '../../middleware/auth';
+import { getDateRange } from '../../common';
+import { Decimal } from 'decimal.js';
 
 const models = {};
 
@@ -199,11 +201,56 @@ export const updateMany = async (ctx: Context): Promise<void> => {
 
 /**
  * Get total count of a collection
- * @param ctx Context
+ * @param ctx.params.collection collection name
  */
 export const count = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const Model = dynamicModels(collection);
   const response = await Model.countDocuments();
   ctx.body = response;
+};
+
+/**
+ * Get sum total of a specific field from date range
+ * @param ctx.params.collection
+ * @param ctx.body.query
+ * @param ctx.body.startDate
+ * @param ctx.body.endDate
+ * @param ctx.body.fieldToSum
+ */
+export const sum = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const Model = dynamicModels(collection);
+  const { query = {}, startDate, endDate, fieldToSum } = ctx.request.body;
+  const { uid } = decodeJwt(ctx); // 用户 id
+  const dateRange = getDateRange({ startDate, endDate });
+
+  const config = [
+    {
+      $match: {
+        $and: [{ uid }, query, dateRange],
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        amount: {
+          $sum: `$${fieldToSum}`,
+        },
+      },
+    },
+  ];
+
+  const result = await Model.aggregate(config).then((res: genericObject) => {
+    if (!res.length) return 0;
+
+    let { amount = 0 } = res[0];
+    if (amount) {
+      // 修复 js 计算精度问题
+      amount = new Decimal(amount).toFixed(2);
+    }
+    return +amount;
+  });
+
+  ctx.body = result;
 };

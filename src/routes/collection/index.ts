@@ -7,6 +7,7 @@ import {
   update,
   updateMany,
   count,
+  sum,
 } from './controller';
 import { checkIdentity } from '../../middleware/validate';
 
@@ -15,6 +16,7 @@ const router = Router => {
 
   router
     .get('/:collection/count', count) // get count of a collection
+    .post('/:collection/sum', sum) // sum total of a specific field of a collection
     .get('/:collection/:documentId', getDocument) // get details of a document
     .put(
       '/:collection/updateMany',
