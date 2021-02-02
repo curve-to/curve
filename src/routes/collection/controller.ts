@@ -220,9 +220,6 @@ export const count = async (ctx: Context): Promise<void> => {
  */
 export const sum = async (ctx: Context): Promise<void> => {
   const { uid } = decodeJwt(ctx);
-  if (!uid) {
-    ctx.throw(403, 'You have to sign in to use this feature.');
-  }
 
   const { collection } = ctx.params;
   const Model = dynamicModels(collection);
@@ -230,13 +227,13 @@ export const sum = async (ctx: Context): Promise<void> => {
   const { query, dates } = parseQueryForSum(_query);
   const dateRange = getDateRange(dates);
 
+  const match = uid
+    ? { uid, ...query, ...dateRange }
+    : { ...query, ...dateRange };
+
   const config = [
     {
-      $match: {
-        uid,
-        ...query,
-        ...dateRange,
-      },
+      $match: match,
     },
     {
       $group: {
