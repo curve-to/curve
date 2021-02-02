@@ -246,7 +246,7 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
   const { uid } = decodeJwt(ctx);
 
   if (!uid) {
-    ctx.throw(403, 'User is not found.');
+    ctx.throw(403, 'You have to sign in to use this feature.');
   }
 
   const update: genericObject = [
