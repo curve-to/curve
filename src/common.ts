@@ -13,12 +13,16 @@ export const getDateRange = (dateRange = {}): genericObject => {
     {}
   );
 
-  return { updatedAt: createdAt };
+  if (!Object.keys(createdAt).length) {
+    createdAt['$gte'] = moment(new Date(null)).unix();
+  }
+
+  return { createdAt };
 };
 
 /**
  * parse query for sum method (only)
- * @param query 
+ * @param query
  */
 export const parseQueryForSum = (query = {}): genericObject => {
   const dates = {};
