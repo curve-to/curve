@@ -2,26 +2,44 @@ import * as moment from 'moment';
 
 /**
  * Get date range
- * @param startDate
- * @param endDate
+ * @param dateRange
  */
-export const getDateRange = ({
-  startDate = '',
-  endDate = '',
-} = {}): genericObject => {
-  // If no startDate is given, initialize it to '1970-01-01'
-  if (!startDate && endDate) {
-    startDate = '1970-01-01';
-  }
+export const getDateRange = (dateRange = {}): genericObject => {
+  const createdAt = Object.keys(dateRange).reduce(
+    (final: genericObject, key: string): genericObject => {
+      final[key] = moment(new Date(dateRange[key])).unix();
+      return final;
+    },
+    {}
+  );
+
+  return { updatedAt: createdAt };
+};
+
+/**
+ * parse query for sum method (only)
+ * @param query 
+ */
+export const parseQueryForSum = (query = {}): genericObject => {
+  const dates = {};
+  const _query = Object.keys(query).reduce(
+    (final: genericObject, key: string): genericObject => {
+      const value = query[key];
+      if (key === 'createdAt') {
+        for (const dateKey in value) {
+          dates[dateKey] = value[dateKey];
+        }
+      } else if (value['$eq'] != null) {
+        final[key] = value['$eq'];
+      }
+
+      return final;
+    },
+    {}
+  );
 
   return {
-    createdAt: {
-      $gte: moment(startDate ? new Date(startDate) : new Date()).format(
-        'YYYY-MM-DD 00:00:00'
-      ),
-      $lte: moment(endDate ? new Date(endDate) : new Date()).format(
-        'YYYY-MM-DD 23:59:59'
-      ),
-    },
+    dates,
+    query: _query,
   };
 };

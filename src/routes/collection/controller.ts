@@ -5,7 +5,7 @@ import * as _ from 'underscore';
 import { Context } from 'koa';
 import { collections } from '../../config/database';
 import { decodeJwt } from '../../middleware/auth';
-import { getDateRange } from '../../common';
+import { getDateRange, parseQueryForSum } from '../../common';
 import { Decimal } from 'decimal.js';
 
 const models = {};
@@ -219,23 +219,30 @@ export const count = async (ctx: Context): Promise<void> => {
  * @param ctx.body.fieldToSum
  */
 export const sum = async (ctx: Context): Promise<void> => {
+  const { uid } = decodeJwt(ctx);
+  if (!uid) {
+    ctx.throw(403, 'You have to sign in to use this feature.');
+  }
+
   const { collection } = ctx.params;
   const Model = dynamicModels(collection);
-  const { query = {}, startDate, endDate, fieldToSum } = ctx.request.body;
-  const { uid } = decodeJwt(ctx);
-  const dateRange = getDateRange({ startDate, endDate });
+  const { query: _query = {}, field } = ctx.request.body;
+  const { query, dates } = parseQueryForSum(_query);
+  const dateRange = getDateRange(dates);
 
   const config = [
     {
       $match: {
-        $and: [{ uid }, query, dateRange],
+        uid,
+        ...query,
+        ...dateRange,
       },
     },
     {
       $group: {
         _id: null,
         amount: {
-          $sum: `$${fieldToSum}`,
+          $sum: `$${field}`,
         },
       },
     },
@@ -248,8 +255,34 @@ export const sum = async (ctx: Context): Promise<void> => {
     if (amount) {
       amount = new Decimal(amount).toFixed(2);
     }
+
     return +amount;
   });
 
   ctx.body = result;
 };
+
+// export const convertToUnix = async (ctx: Context): Promise<void> => {
+//   const { collection } = ctx.params;
+//   const Model = dynamicModels(collection);
+//   const response = await Model.find()
+//     .lean()
+//     .exec((err, docs) => {
+//       docs.forEach(async doc => {
+//         // if (!doc.updatedAt || !Number.isInteger(+doc.updatedAt)) {
+//         //   console.log(doc);
+//         // }
+
+//         // const createdAt = moment(doc.createdAt).unix();
+//         const res = await Model.update(
+//           { id: doc.id },
+//           {
+//             createdAt: doc.updatedAt,
+//           }
+//         );
+//         console.log('success', res);
+//       });
+//       console.log('done');
+//     });
+//   ctx.body = response;
+// };
