@@ -123,12 +123,17 @@ export const getCollection = async (ctx: Context): Promise<void> => {
     pageSize = 20,
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
-    query = JSON.stringify({}),
+    query: _query = JSON.stringify({}),
   } = ctx.request.query;
+
+  let query = JSON.parse(_query);
+  if (query.createdAt) {
+    query = {...query, ...getDateRange(query.createdAt)};
+  }
 
   const Model = dynamicModels(collection);
   const records = await Model.find(
-    JSON.parse(query),
+    query,
     excludeFields(['_id', '__v'], exclude)
   )
     .sort({ $natural: sortOrder })

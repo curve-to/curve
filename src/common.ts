@@ -7,12 +7,16 @@ import * as moment from 'moment';
 export const getDateRange = (dateRange = {}): genericObject => {
   const createdAt = Object.keys(dateRange).reduce(
     (final: genericObject, key: string): genericObject => {
-      final[key] = moment(new Date(dateRange[key])).unix();
+      const time = dateRange[key];
+      // Never convert number to unix timestamp when it is already a number (unix timestamp)
+      final[key] =
+        typeof time === 'number' ? time : moment(new Date(time)).unix();
       return final;
     },
     {}
   );
 
+  // By default, set createAt to 0 (unix timestamp, 1970-01-01)
   if (!Object.keys(createdAt).length) {
     createdAt['$gte'] = moment(new Date(null)).unix();
   }
