@@ -17,8 +17,8 @@ export default {
   },
   bypassCorsList: [], // whitelist for cors
   tokenExpiration: '90d',
-	// WeChat mini program appId, make sure one is saved here before you use signInWithWeChat method
-	appIds: {
-		wxxxxxxxxxxxxxx: 'xxxxxxxxxxxxxxxxxxxxxxx', // WeChat mini program app secret
-	},
+  // WeChat mini program appId, make sure one is saved here before you use signInWithWeChat method
+  appIds: {
+    wxxxxxxxxxxxxxx: 'xxxxxxxxxxxxxxxxxxxxxxx', // WeChat mini program app secret
+  },
 };

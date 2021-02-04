@@ -19,6 +19,7 @@ export const tokenValidation = async (
 };
 
 // Get account info by decoding
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const decodeJwt = (ctx: Context): any => {
   const { authorization } = ctx.request.header;
   if (!authorization || !authorization.includes('bearer ')) return {};
