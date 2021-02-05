@@ -128,7 +128,7 @@ export const getCollection = async (ctx: Context): Promise<void> => {
 
   let query = JSON.parse(_query);
   if (query.createdAt) {
-    query = {...query, ...getDateRange(query.createdAt)};
+    query = { ...query, ...getDateRange(query.createdAt) };
   }
 
   const Model = dynamicModels(collection);
@@ -151,6 +151,19 @@ export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const Model = dynamicModels(collection);
   await Model.find({ id }).deleteOne();
+  ctx.body = 'ok';
+};
+
+/**
+ * Remove documents
+ * @param ctx Context
+ */
+export const removeMany = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const { query = {} } = ctx.request.body; // if query is an empty object, remove all
+
+  const Model = dynamicModels(collection);
+  await Model.deleteMany(query);
   ctx.body = 'ok';
 };
 

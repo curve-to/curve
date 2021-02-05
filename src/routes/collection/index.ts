@@ -4,6 +4,7 @@ import {
   getCollection,
   getDocument,
   remove,
+  removeMany,
   update,
   updateMany,
   count,
@@ -33,6 +34,7 @@ const router = Router => {
       checkIdentity({ requiresAdmin: true }),
       remove
     ) // remove a document
+    .delete('/:collection', checkIdentity({ requiresAdmin: true }), removeMany) // remove multiple documents
     .post('/:collection', checkIdentity({ requiresAdmin: true }), create) // create a document
     .post(
       '/:collection/createMany',
