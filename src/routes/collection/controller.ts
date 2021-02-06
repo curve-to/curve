@@ -123,17 +123,19 @@ export const getCollection = async (ctx: Context): Promise<void> => {
     pageSize = 20,
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
-    query: _query = JSON.stringify({}),
+    where: _where = JSON.stringify({}),
   } = ctx.request.query;
 
-  let query = JSON.parse(_query);
-  if (query.createdAt) {
-    query = { ...query, ...getDateRange(query.createdAt) };
+  console.log('_where - ', _where);
+
+  let where = JSON.parse(_where);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
   }
 
   const Model = dynamicModels(collection);
   const records = await Model.find(
-    query,
+    where,
     excludeFields(['_id', '__v'], exclude)
   )
     .sort({ $natural: sortOrder })
@@ -160,10 +162,10 @@ export const remove = async (ctx: Context): Promise<void> => {
  */
 export const removeMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { query = {} } = ctx.request.body; // if query is an empty object, remove all
+  const { where = {} } = ctx.request.body; // if where is an empty object, remove all
 
   const Model = dynamicModels(collection);
-  await Model.deleteMany(query);
+  await Model.deleteMany(where);
   ctx.body = 'ok';
 };
 
@@ -198,7 +200,7 @@ export const update = async (ctx: Context): Promise<void> => {
  */
 export const updateMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { query = {}, data = {} } = ctx.request.body;
+  const { where = {}, data = {} } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
   const Model = dynamicModels(collection);
@@ -213,7 +215,7 @@ export const updateMany = async (ctx: Context): Promise<void> => {
 
   if (data.$unset.length) update.push({ $unset: data.$unset });
 
-  const response = await Model.updateMany(query, update);
+  const response = await Model.updateMany(where, update);
   ctx.body = response;
 };
 
@@ -241,13 +243,13 @@ export const sum = async (ctx: Context): Promise<void> => {
 
   const { collection } = ctx.params;
   const Model = dynamicModels(collection);
-  const { query: _query = {}, field } = ctx.request.body;
-  const { query, dates } = parseQueryForSum(_query);
+  const { where: _where = {}, field } = ctx.request.body;
+  const { where, dates } = parseQueryForSum(_where);
   const dateRange = getDateRange(dates);
 
   const match = uid
-    ? { uid, ...query, ...dateRange }
-    : { ...query, ...dateRange };
+    ? { uid, ...where, ...dateRange }
+    : { ...where, ...dateRange };
 
   const config = [
     {
@@ -277,27 +279,40 @@ export const sum = async (ctx: Context): Promise<void> => {
   ctx.body = result;
 };
 
-// export const convertToUnix = async (ctx: Context): Promise<void> => {
-//   const { collection } = ctx.params;
-//   const Model = dynamicModels(collection);
-//   const response = await Model.find()
-//     .lean()
-//     .exec((err, docs) => {
-//       docs.forEach(async doc => {
-//         // if (!doc.updatedAt || !Number.isInteger(+doc.updatedAt)) {
-//         //   console.log(doc);
-//         // }
+export const convertToUnix = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const Model = dynamicModels(collection);
+  const response = await Model.find()
+    .lean()
+    .exec(async (err, docs) => {
+      for (let i in docs) {
+        const doc = docs[i];
+        if (!Number.isInteger(doc.updatedAt)) {
+          console.log(doc);
+          const updatedAt = moment(new Date(doc.updatedAt)).unix();
+          console.log(updatedAt);
+          const res = await Model.update(
+            { id: doc.id },
+            {
+              createdAt: updatedAt,
+              updatedAt,
+            }
+          );
+          console.log('success', res);
+        }
 
-//         // const createdAt = moment(doc.createdAt).unix();
-//         const res = await Model.update(
-//           { id: doc.id },
-//           {
-//             createdAt: doc.updatedAt,
-//           }
-//         );
-//         console.log('success', res);
-//       });
-//       console.log('done');
-//     });
-//   ctx.body = response;
-// };
+        // const updatedAt = moment(new Date(doc.updatedAt)).unix();
+        // console.log(updatedAt);
+        // const res = await Model.update(
+        //   { id: doc.id },
+        //   {
+        //     createdAt: updatedAt,
+        //     updatedAt,
+        //   }
+        // );
+        // console.log('success', res);
+      }
+      console.log('done');
+    });
+  ctx.body = response;
+};
