@@ -11,16 +11,6 @@ import config from '../../config';
 import { THIRD_PARTY_URLS } from '../../config/constants';
 import { decodeJwt } from '../../middleware/auth';
 
-interface IUser extends mongoose.Document {
-  username: string;
-  password: string;
-  role: number;
-  uid: string;
-  createdAt: string;
-  email: string;
-  openid: string;
-}
-
 const schema = new mongoose.Schema({
   username: String,
   password: String,
@@ -31,7 +21,7 @@ const schema = new mongoose.Schema({
   openid: String,
 });
 
-const UserModel = user.model('user', schema);
+export const UserModel = user.model('user', schema);
 
 /**
  * validate email address
@@ -212,7 +202,7 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
   if (!appId || !appSecret) {
     ctx.throw(
       403,
-      'App Id is not found. Make sure your app have been registered.'
+      'App Id is not found. Make sure your app has been registered.'
     );
   }
 
