@@ -9,7 +9,7 @@ export const tokenValidation = async (
   ctx: Context,
   next: () => Promise<never>
 ): Promise<void> => {
-  return next().catch((err) => {
+  return next().catch(err => {
     if (err.status === 401) {
       return ctx.throw(401, 'token is invalid');
     }

@@ -15,7 +15,11 @@ const router = Router => {
     .post('/register', validate(['username', 'password', 'email']), register)
     .put('/change', validate(['username', 'password', 'email']), changePassword)
     .get('/signInWithWeChat', validate(['code']), signInWithWeChat)
-    .post('/updateWeChatUserInfo', validate(['userInfo']), updateWeChatUserInfo);
+    .post(
+      '/updateWeChatUserInfo',
+      validate(['userInfo']),
+      updateWeChatUserInfo
+    );
 
   return router;
 };

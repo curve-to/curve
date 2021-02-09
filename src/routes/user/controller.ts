@@ -84,9 +84,12 @@ const generateJWTToken = (user: genericObject) => {
     expiresIn: config.tokenExpiration,
   });
 
+  const { exp: expiredAt } = <genericObject>jwt.decode(token);
+
   const result = {
     token,
     user: _.omit(user.toJSON(), ['_id', '__v', 'password']),
+    expiredAt,
   };
 
   return result;
