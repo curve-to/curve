@@ -52,3 +52,19 @@ export const checkIdentity = ({
     return await next();
   };
 };
+
+/**
+ * Require login
+ */
+export const requireLogin = () => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { role } = decodeJwt(ctx);
+
+    // if there's no token provided, or user has no role, throw an error
+    if (role == null) {
+      ctx.throw(403, 'You must log in to perform this action');
+    }
+
+    return await next();
+  };
+};
