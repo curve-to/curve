@@ -100,7 +100,7 @@ export const createMany = async (ctx: Context): Promise<void> => {
  * Get details of a document
  * @param ctx Context
  */
-export const getDocument = async (ctx: Context): Promise<void> => {
+export const find = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const { exclude } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
@@ -116,7 +116,7 @@ export const getDocument = async (ctx: Context): Promise<void> => {
  * Get documents of a collection
  * @param ctx Context
  */
-export const getCollection = async (ctx: Context): Promise<void> => {
+export const findMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const {
     exclude, // string[] fields to exclude, e.g. field1,field2,field3
