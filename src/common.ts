@@ -23,31 +23,3 @@ export const getDateRange = (dateRange = {}): genericObject => {
 
   return { createdAt };
 };
-
-/**
- * parse where for sum method (only)
- * @param where
- */
-export const parseQueryForSum = (where = {}): genericObject => {
-  const dates = {};
-  const _where = Object.keys(where).reduce(
-    (final: genericObject, key: string): genericObject => {
-      const value = where[key];
-      if (key === 'createdAt') {
-        for (const dateKey in value) {
-          dates[dateKey] = value[dateKey];
-        }
-      } else if (value['$eq'] != null) {
-        final[key] = value['$eq'];
-      }
-
-      return final;
-    },
-    {}
-  );
-
-  return {
-    dates,
-    where: _where,
-  };
-};

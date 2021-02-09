@@ -5,7 +5,7 @@ import * as _ from 'underscore';
 import { Context } from 'koa';
 import { collections } from '../../config/database';
 import { decodeJwt } from '../../middleware/auth';
-import { getDateRange, parseQueryForSum } from '../../common';
+import { getDateRange } from '../../common';
 import { Decimal } from 'decimal.js';
 
 const models = {};
@@ -126,8 +126,6 @@ export const getCollection = async (ctx: Context): Promise<void> => {
     where: _where = JSON.stringify({}),
   } = ctx.request.query;
 
-  console.log('_where - ', _where);
-
   let where = JSON.parse(_where);
   if (where.createdAt) {
     where = { ...where, ...getDateRange(where.createdAt) };
@@ -239,21 +237,13 @@ export const count = async (ctx: Context): Promise<void> => {
  * @param ctx.body.fieldToSum
  */
 export const sum = async (ctx: Context): Promise<void> => {
-  const { uid } = decodeJwt(ctx);
-
   const { collection } = ctx.params;
   const Model = dynamicModels(collection);
-  const { where: _where = {}, field } = ctx.request.body;
-  const { where, dates } = parseQueryForSum(_where);
-  const dateRange = getDateRange(dates);
-
-  const match = uid
-    ? { uid, ...where, ...dateRange }
-    : { ...where, ...dateRange };
+  const { where = {}, field } = ctx.request.body;
 
   const config = [
     {
-      $match: match,
+      $match: where,
     },
     {
       $group: {
