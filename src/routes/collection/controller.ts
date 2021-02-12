@@ -124,6 +124,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
     where: _where = JSON.stringify({}),
+    populated: _populated = JSON.stringify({}),
   } = ctx.request.query;
 
   let where = JSON.parse(_where);
@@ -131,11 +132,23 @@ export const findMany = async (ctx: Context): Promise<void> => {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
+  // Populate(expand) fields from another collection
+  const populated = JSON.parse(_populated).map((item: populatedObject) => {
+    let exclude = '-_id -__v';
+    if (item.model === 'users') {
+      exclude = exclude + ' -password';
+    }
+
+    item.select = exclude;
+    return item;
+  });
+
   const Model = dynamicModels(collection);
   const records = await Model.find(
     where,
     excludeFields(['_id', '__v'], exclude)
   )
+    .populate(populated)
     .sort({ $natural: sortOrder })
     .skip((pageNo - 1) * +pageSize)
     .limit(+pageSize)
@@ -267,42 +280,4 @@ export const sum = async (ctx: Context): Promise<void> => {
   });
 
   ctx.body = result;
-};
-
-export const convertToUnix = async (ctx: Context): Promise<void> => {
-  const { collection } = ctx.params;
-  const Model = dynamicModels(collection);
-  const response = await Model.find()
-    .lean()
-    .exec(async (err, docs) => {
-      for (let i in docs) {
-        const doc = docs[i];
-        if (!Number.isInteger(doc.updatedAt)) {
-          console.log(doc);
-          const updatedAt = moment(new Date(doc.updatedAt)).unix();
-          console.log(updatedAt);
-          const res = await Model.update(
-            { id: doc.id },
-            {
-              createdAt: updatedAt,
-              updatedAt,
-            }
-          );
-          console.log('success', res);
-        }
-
-        // const updatedAt = moment(new Date(doc.updatedAt)).unix();
-        // console.log(updatedAt);
-        // const res = await Model.update(
-        //   { id: doc.id },
-        //   {
-        //     createdAt: updatedAt,
-        //     updatedAt,
-        //   }
-        // );
-        // console.log('success', res);
-      }
-      console.log('done');
-    });
-  ctx.body = response;
 };
