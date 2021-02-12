@@ -45,6 +45,19 @@ const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
   return excluded;
 };
 
+// Populate(expand) fields from another collection
+const getPopulated = (_populated: string) => {
+  return JSON.parse(_populated).map((item: populatedObject) => {
+    let exclude = '-_id -__v';
+    if (item.model === 'users') {
+      exclude = exclude + ' -password';
+    }
+
+    item.select = exclude;
+    return item;
+  });
+};
+
 /**
  * Create a document
  * @param ctx Context
@@ -102,13 +115,20 @@ export const createMany = async (ctx: Context): Promise<void> => {
  */
 export const find = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
-  const { exclude } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
+  const {
+    exclude,
+    populated: _populated = JSON.stringify({}),
+  } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
+
+  const populated = getPopulated(_populated);
 
   const Model = dynamicModels(collection);
   const record = await Model.findOne(
     { id },
     excludeFields(['_id', '__v'], exclude)
-  ).lean();
+  )
+    .populate(populated)
+    .lean();
   ctx.body = record || {};
 };
 
@@ -132,16 +152,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
-  // Populate(expand) fields from another collection
-  const populated = JSON.parse(_populated).map((item: populatedObject) => {
-    let exclude = '-_id -__v';
-    if (item.model === 'users') {
-      exclude = exclude + ' -password';
-    }
-
-    item.select = exclude;
-    return item;
-  });
+  const populated = getPopulated(_populated);
 
   const Model = dynamicModels(collection);
   const records = await Model.find(
