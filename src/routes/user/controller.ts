@@ -6,7 +6,7 @@ import * as crypto from 'crypto';
 import * as _ from 'underscore';
 import fetch from 'node-fetch';
 import { Context } from 'koa';
-import { user } from '../../config/database';
+import { collections } from '../../config/database';
 import config from '../../config';
 import { THIRD_PARTY_URLS } from '../../config/constants';
 import { decodeJwt } from '../../middleware/auth';
@@ -21,7 +21,7 @@ const schema = new mongoose.Schema({
   openid: String,
 });
 
-export const UserModel = user.model('user', schema);
+export const UserModel = collections.model('users', schema);
 
 /**
  * validate email address

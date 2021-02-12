@@ -68,3 +68,19 @@ export const requireLogin = () => {
     return await next();
   };
 };
+
+/**
+ * Disable querying User collection
+ */
+export const disableUserQuery = () => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { collection } = ctx.params;
+
+    // if there's no token provided, or user has no role, throw an error
+    if (collection == 'users') {
+      ctx.throw(403, 'You are not allowed to perform this action.');
+    }
+
+    return await next();
+  };
+};

@@ -11,5 +11,4 @@ const createConn = (db: string) => {
   });
 };
 
-export const user = createConn('user');
 export const collections = createConn('contentGroup');
