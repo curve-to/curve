@@ -245,8 +245,6 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
   const { userInfo } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
-  console.log('uid - ', uid);
-
   if (!uid) {
     ctx.throw(403, 'You have to sign in to use this feature.');
   }
