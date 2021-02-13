@@ -11,14 +11,24 @@ import config from '../../config';
 import { THIRD_PARTY_URLS } from '../../config/constants';
 import { decodeJwt } from '../../middleware/auth';
 
-const schema = new mongoose.Schema({
-  username: String,
-  password: String,
-  role: Number,
-  uid: String,
-  createdAt: String,
-  email: String,
-  openid: String,
+const schema = new mongoose.Schema(
+  {
+    username: String,
+    password: String,
+    role: Number,
+    createdAt: String,
+    email: String,
+    openid: String,
+  },
+  {
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
+  }
+);
+
+// Generate virtual field 'id' that returns _id.toString()
+schema.virtual('uid').get(function () {
+  return this._id;
 });
 
 export const UserModel = collections.model('users', schema);
@@ -44,12 +54,9 @@ const registerAsNewUser = async ({
   email = '',
   openid = '',
 } = {}) => {
-  const uid = crypto.randomBytes(12).toString('hex');
-
   let data: genericObject = {
     role: 0, // 0 normal user, 1 administrator
     createdAt: moment().unix(),
-    uid,
   };
 
   // register with username and password
@@ -238,6 +245,8 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
   const { userInfo } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
+  console.log('uid - ', uid);
+
   if (!uid) {
     ctx.throw(403, 'You have to sign in to use this feature.');
   }
@@ -251,7 +260,7 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
     },
   ];
 
-  await UserModel.updateOne({ uid }, update);
-  const user = await UserModel.findOne({ uid });
+  await UserModel.updateOne({ _id: uid }, update);
+  const user = await UserModel.findOne({ _id: uid });
   ctx.body = _.omit(user.toJSON(), ['_id', '__v', 'password']);
 };
