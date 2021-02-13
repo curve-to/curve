@@ -1,40 +1,9 @@
-import * as mongoose from 'mongoose';
 import * as moment from 'moment';
 import * as _ from 'underscore';
 import { Context } from 'koa';
-import { collections } from '../../config/database';
 import { decodeJwt } from '../../middleware/auth';
-import { getDateRange } from '../../common';
+import { getDateRange, createDynamicModels } from '../../common';
 import { Decimal } from 'decimal.js';
-
-const models = {};
-
-/**
- * Create dynamic models
- * @param collection name of a collection
- * @returns model
- */
-const createDynamicModels = (collection: string) => {
-  if (!models[collection]) {
-    const schema = new mongoose.Schema(
-      { createdAt: Number },
-      {
-        strict: false,
-        versionKey: false,
-        toObject: { virtuals: true },
-        toJSON: { virtuals: true },
-      }
-    );
-
-    // Generate virtual field 'id' that returns _id.toString()
-    schema.virtual('id').get(function () {
-      return this._id;
-    });
-
-    models[collection] = collections.model(collection, schema, collection);
-  }
-  return models[collection];
-};
 
 /**
  * Hide fields from results

@@ -10,7 +10,12 @@ import {
   count,
   sum,
 } from './controller';
-import { disableUserQuery, checkIdentity } from '../../middleware/validate';
+import {
+  disableUserQuery,
+  requireAdmin,
+  requireCurrentUser,
+  requireLogin,
+} from '../../middleware/validate';
 
 const router = Router => {
   const router = new Router({ prefix: '/collection' });
@@ -22,32 +27,36 @@ const router = Router => {
     .put(
       '/:collection/updateMany',
       disableUserQuery(),
-      checkIdentity({ requiresAdmin: true }),
+      requireLogin(),
+      requireAdmin(), // for updating multiple documents, require admin. this helps hackers who batch update other documents
       updateMany
     ) // update multiple documents
     .put(
       '/:collection/:documentId',
       disableUserQuery(),
-      checkIdentity({ requiresAdmin: true }),
+      requireLogin(),
+      requireCurrentUser(), // for updating single document, require current user
       update
     ) // update a document
     .delete(
       '/:collection/:documentId',
       disableUserQuery(),
-      checkIdentity({ requiresAdmin: true }),
+      requireLogin(),
+      requireCurrentUser(), // for deleting single document, require current user
       remove
     ) // remove a document
     .delete(
       '/:collection',
       disableUserQuery(),
-      checkIdentity({ requiresAdmin: true }),
+      requireLogin(),
+      requireAdmin(), // for deleting multiple documents, require admin. this helps hackers who batch delete other documents
       removeMany
     ) // remove multiple documents
-    .post('/:collection', disableUserQuery(), checkIdentity(), create) // create a document
+    .post('/:collection', disableUserQuery(), requireLogin(), create) // create a document
     .post(
       '/:collection/createMany',
       disableUserQuery(),
-      checkIdentity(),
+      requireLogin(),
       createMany
     ) // create multiple documents
     .get('/:collection', disableUserQuery(), findMany); // get documents of a collection

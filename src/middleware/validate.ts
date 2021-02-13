@@ -1,5 +1,6 @@
 import { Context } from 'koa';
 import { decodeJwt } from './auth';
+import { createDynamicModels } from '../common';
 
 /**
  * Validate fields of a specific route
@@ -24,21 +25,31 @@ export const validate = (fields: string[]) => {
 };
 
 /**
- * Check user identity
- * @param requiresAdmin check if the route requires admin
- * user type: 0 normal user, 1 admin
+ * Disable querying User collection
  */
-export const checkIdentity = ({ requiresAdmin = false } = {}) => {
+export const disableUserQuery = () => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { collection } = ctx.params;
+
+    // if there's no token provided, or user has no role, throw an error
+    if (collection == 'users') {
+      ctx.throw(403, 'You are not allowed to perform this action.');
+    }
+
+    return await next();
+  };
+};
+
+/**
+ * Require admin middle
+ * role type: 0 normal user, 1 admin
+ */
+export const requireAdmin = () => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     const { role } = decodeJwt(ctx);
 
-    // If there's no token provided, or user has no role, throw an error
-    if (role == null) {
-      ctx.throw(403, 'You must log in to perform this action.');
-    }
-
     // If the route requires admin privileges but user is not an admin, throw an error
-    if (requiresAdmin && role !== 1) {
+    if (role !== 1) {
       ctx.throw(
         403,
         'You are not allowed to perform this action. Are you an admin?'
@@ -49,16 +60,44 @@ export const checkIdentity = ({ requiresAdmin = false } = {}) => {
   };
 };
 
+const validateCurrentUserInWhere = (where: genericObject, uid: string) => {
+  const _where = JSON.stringify(where);
+  if (_where.includes(`"createdBy":{"$eq":"${uid}"}`)) {
+    return true;
+  }
+  return false;
+};
+
 /**
- * Disable querying User collection
+ * Require current user middleware
  */
-export const disableUserQuery = () => {
+export const requireCurrentUser = () => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
-    const { collection } = ctx.params;
+    const { collection, documentId: id } = ctx.params;
+    const { role, uid } = decodeJwt(ctx);
+
+    if (role !== 1) {
+      const Model = createDynamicModels(collection);
+      const record = await Model.findOne({ _id: id }).lean();
+
+      if (record.createdBy !== uid) {
+        ctx.throw(403, 'You are not allowed to perform this action.');
+      }
+    }
+    return await next();
+  };
+};
+
+/**
+ * Require login
+ */
+export const requireLogin = () => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { role } = decodeJwt(ctx);
 
     // if there's no token provided, or user has no role, throw an error
-    if (collection == 'users') {
-      ctx.throw(403, 'You are not allowed to perform this action.');
+    if (role == null) {
+      ctx.throw(403, 'You must log in to perform this action');
     }
 
     return await next();
