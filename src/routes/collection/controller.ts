@@ -15,7 +15,7 @@ const models = {};
  * @param collection name of a collection
  * @returns model
  */
-const dynamicModels = (collection: string) => {
+const createDynamicModels = (collection: string) => {
   if (!models[collection]) {
     const schema = new mongoose.Schema(
       { id: String, createdAt: Number },
@@ -48,12 +48,8 @@ const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
 // Populate(expand) fields from another collection
 const getPopulated = (_populated: string) => {
   return JSON.parse(_populated).map((item: populatedObject) => {
-    let exclude = '-_id -__v';
-    if (item.model === 'users') {
-      exclude = exclude + ' -password';
-    }
-
-    item.select = exclude;
+    createDynamicModels(item.model);
+    item.select = item.model === 'users' ? '-_id -__v -password' : '-_id -__v';
     return item;
   });
 };
@@ -66,7 +62,7 @@ export const create = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { uid } = decodeJwt(ctx);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const id = crypto.randomBytes(8).toString('hex'); // generate unique id
 
   const params = {
@@ -89,7 +85,7 @@ export const createMany = async (ctx: Context): Promise<void> => {
   const { body } = ctx.request;
   const { uid } = decodeJwt(ctx);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
 
   const documents = body.map((fields: genericObject) => {
     const id = crypto.randomBytes(8).toString('hex'); // generate unique id
@@ -122,7 +118,7 @@ export const find = async (ctx: Context): Promise<void> => {
 
   const populated = getPopulated(_populated);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const record = await Model.findOne(
     { id },
     excludeFields(['_id', '__v'], exclude)
@@ -154,7 +150,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
 
   const populated = getPopulated(_populated);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const records = await Model.find(
     where,
     excludeFields(['_id', '__v'], exclude)
@@ -173,7 +169,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
  */
 export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   await Model.find({ id }).deleteOne();
   ctx.body = 'ok';
 };
@@ -186,7 +182,7 @@ export const removeMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { where = {} } = ctx.request.body; // if where is an empty object, remove all
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   await Model.deleteMany(where);
   ctx.body = 'ok';
 };
@@ -200,7 +196,7 @@ export const update = async (ctx: Context): Promise<void> => {
   const { data = {} } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const update: genericObject[] = [
     {
       $set: Object.assign(data.$set, {
@@ -225,7 +221,7 @@ export const updateMany = async (ctx: Context): Promise<void> => {
   const { where = {}, data = {} } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const update: genericObject = [
     {
       $set: Object.assign(data.$set, {
@@ -247,7 +243,7 @@ export const updateMany = async (ctx: Context): Promise<void> => {
  */
 export const count = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const response = await Model.countDocuments();
   ctx.body = response;
 };
@@ -262,7 +258,7 @@ export const count = async (ctx: Context): Promise<void> => {
  */
 export const sum = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const Model = dynamicModels(collection);
+  const Model = createDynamicModels(collection);
   const { where = {}, field } = ctx.request.body;
 
   const config = [
