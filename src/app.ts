@@ -7,7 +7,7 @@ import config from './config';
 import corsMiddleware from './middleware/cors';
 
 const app = new Koa();
-const port = 4000;
+const port = 1234;
 
 app
   .use(bodyParser(config.bodyParserConfig))
