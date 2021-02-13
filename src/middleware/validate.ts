@@ -28,41 +28,21 @@ export const validate = (fields: string[]) => {
  * @param requiresAdmin check if the route requires admin
  * user type: 0 normal user, 1 admin
  */
-export const checkIdentity = ({
-  requiresAdmin = false,
-}: {
-  requiresAdmin: boolean;
-}) => {
+export const checkIdentity = ({ requiresAdmin = false } = {}) => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     const { role } = decodeJwt(ctx);
 
-    // if there's no token provided, or user has no role, throw an error
+    // If there's no token provided, or user has no role, throw an error
     if (role == null) {
-      ctx.throw(403, 'user is not allowed to perform this action');
+      ctx.throw(403, 'You must log in to perform this action.');
     }
 
-    // if the route requires admin privileges but user is not an admin, throw an error
+    // If the route requires admin privileges but user is not an admin, throw an error
     if (requiresAdmin && role !== 1) {
       ctx.throw(
         403,
-        'user is not allowed to perform this action. Are you an admin?'
+        'You are not allowed to perform this action. Are you an admin?'
       );
-    }
-
-    return await next();
-  };
-};
-
-/**
- * Require login
- */
-export const requireLogin = () => {
-  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
-    const { role } = decodeJwt(ctx);
-
-    // if there's no token provided, or user has no role, throw an error
-    if (role == null) {
-      ctx.throw(403, 'You must log in to perform this action');
     }
 
     return await next();
