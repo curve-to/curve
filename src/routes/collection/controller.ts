@@ -1,5 +1,4 @@
 import * as mongoose from 'mongoose';
-import * as crypto from 'crypto';
 import * as moment from 'moment';
 import * as _ from 'underscore';
 import { Context } from 'koa';
@@ -18,9 +17,20 @@ const models = {};
 const createDynamicModels = (collection: string) => {
   if (!models[collection]) {
     const schema = new mongoose.Schema(
-      { id: String, createdAt: Number },
-      { strict: false, versionKey: false }
+      { createdAt: Number },
+      {
+        strict: false,
+        versionKey: false,
+        toObject: { virtuals: true },
+        toJSON: { virtuals: true },
+      }
     );
+
+    // Generate virtual field 'id' that returns _id.toString()
+    schema.virtual('id').get(function () {
+      return this._id;
+    });
+
     models[collection] = collections.model(collection, schema, collection);
   }
   return models[collection];
@@ -63,10 +73,8 @@ export const create = async (ctx: Context): Promise<void> => {
   const { uid } = decodeJwt(ctx);
 
   const Model = createDynamicModels(collection);
-  const id = crypto.randomBytes(8).toString('hex'); // generate unique id
 
   const params = {
-    id,
     ...ctx.request.body,
     createdAt: moment().unix(),
     createdBy: uid,
@@ -88,9 +96,7 @@ export const createMany = async (ctx: Context): Promise<void> => {
   const Model = createDynamicModels(collection);
 
   const documents = body.map((fields: genericObject) => {
-    const id = crypto.randomBytes(8).toString('hex'); // generate unique id
     const params = {
-      id,
       ...fields,
       createdAt: moment().unix(),
       createdBy: uid,
@@ -120,12 +126,11 @@ export const find = async (ctx: Context): Promise<void> => {
 
   const Model = createDynamicModels(collection);
   const record = await Model.findOne(
-    { id },
-    excludeFields(['_id', '__v'], exclude)
-  )
-    .populate(populated)
-    .lean();
-  ctx.body = record || {};
+    { _id: id },
+    excludeFields(['__v'], exclude)
+  ).populate(populated);
+
+  ctx.body = record ? _.omit(record.toJSON(), ['_id']) : {};
 };
 
 /**
@@ -151,16 +156,15 @@ export const findMany = async (ctx: Context): Promise<void> => {
   const populated = getPopulated(_populated);
 
   const Model = createDynamicModels(collection);
-  const records = await Model.find(
-    where,
-    excludeFields(['_id', '__v'], exclude)
-  )
+  const records = await Model.find(where, excludeFields(['__v'], exclude))
     .populate(populated)
     .sort({ $natural: sortOrder })
     .skip((pageNo - 1) * +pageSize)
-    .limit(+pageSize)
-    .lean();
-  ctx.body = records || [];
+    .limit(+pageSize);
+
+  ctx.body = records.map((item: genericObject) => {
+    return _.omit(item.toJSON(), ['_id']);
+  });
 };
 
 /**
@@ -170,7 +174,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
 export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const Model = createDynamicModels(collection);
-  await Model.find({ id }).deleteOne();
+  await Model.find({ _id: id }).deleteOne();
   ctx.body = 'ok';
 };
 
@@ -208,7 +212,7 @@ export const update = async (ctx: Context): Promise<void> => {
 
   if (data.$unset.length) update.push({ $unset: data.$unset });
 
-  const response = await Model.updateOne({ id }, update);
+  const response = await Model.updateOne({ _id: id }, update);
   ctx.body = response;
 };
 
