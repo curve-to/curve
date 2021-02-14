@@ -60,14 +60,6 @@ export const requireAdmin = () => {
   };
 };
 
-const validateCurrentUserInWhere = (where: genericObject, uid: string) => {
-  const _where = JSON.stringify(where);
-  if (_where.includes(`"createdBy":{"$eq":"${uid}"}`)) {
-    return true;
-  }
-  return false;
-};
-
 /**
  * Require current user middleware
  */
