@@ -108,13 +108,13 @@ const generateJWTToken = (user: genericObject) => {
  */
 export const register = async (ctx: Context): Promise<void> => {
   if (!config.registrationIsOpen) {
-    ctx.throw(403, 'registration is not open');
+    ctx.throw(403, 'Registration is not open');
   }
 
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'invalid email address');
+    ctx.throw(403, 'Invalid email address');
   }
 
   const _user = await UserModel.findOne({
@@ -122,14 +122,14 @@ export const register = async (ctx: Context): Promise<void> => {
   });
 
   if (_user) {
-    ctx.throw(403, 'the username has been taken');
+    ctx.throw(403, 'The username has been taken');
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   await registerAsNewUser({ username, hashedPassword });
 
-  ctx.body = `user ${username} has successfully registered`;
+  ctx.body = `User ${username} has successfully registered`;
 };
 
 /**
@@ -167,7 +167,7 @@ export const login = async (ctx: Context): Promise<void> => {
     }
   }
 
-  ctx.throw(403, 'username and password mismatch');
+  ctx.throw(403, 'Username and password mismatch');
 };
 
 /**
@@ -178,7 +178,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'invalid email address');
+    ctx.throw(403, 'Invalid email address');
   }
 
   const _user = await UserModel.findOne({
@@ -194,7 +194,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   } else {
     ctx.throw(
       403,
-      `user ${username} is not found or the email given and username mismatch`
+      `User ${username} is not found or the email given and username mismatch`
     );
   }
 };

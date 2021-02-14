@@ -16,7 +16,7 @@ export const validate = (fields: string[]) => {
 
     for (const field of fields) {
       if (!!field && !params.includes(field)) {
-        return ctx.throw(400, `required field ${field} is not provided`);
+        return ctx.throw(400, `Required field ${field} is not provided`);
       }
     }
 
