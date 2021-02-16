@@ -19,6 +19,7 @@ const schema = new mongoose.Schema(
     createdAt: String,
     email: String,
     openid: String,
+    appId: String,
   },
   {
     toObject: { virtuals: true },
@@ -47,12 +48,15 @@ const validateEmail = (email: string) => {
  * @param username username
  * @param hashedPassword required when using username && password as login method
  * @param email required when using username && password as login method
+ * @param openid required when using WeChat login
+ * @param appId required when using WeChat login
  */
 const registerAsNewUser = async ({
   username = '',
   hashedPassword = null,
   email = '',
   openid = '',
+  appId = '',
 } = {}) => {
   let data: genericObject = {
     role: 0, // 0 normal user, 1 administrator
@@ -71,6 +75,7 @@ const registerAsNewUser = async ({
     // register with WeChat open id
     data = {
       openid,
+      appId,
       ...data,
     };
   }
@@ -226,13 +231,14 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
     ctx.throw(403, `Login failed. errcode: ${errcode}. ${errmsg}`);
   }
 
-  const user = await UserModel.findOne({ openid });
+  const user = await UserModel.findOne({ openid, appId });
   // If user is not found, create a new one
   if (!user) {
-    await registerAsNewUser({ openid });
+    await registerAsNewUser({ openid, appId });
   }
 
-  const _user = user || (await UserModel.findOne({ openid }));
+  const _user = user || (await UserModel.findOne({ openid, appId }));
+
   const result = generateJWTToken(_user);
   ctx.body = result;
 };
@@ -245,6 +251,16 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
   const { userInfo } = ctx.request.body;
   const { uid } = decodeJwt(ctx);
 
+  const appId = ctx.get('appid');
+  const appSecret = config['appIds'][appId];
+
+  if (!appId || !appSecret) {
+    ctx.throw(
+      403,
+      'App Id is not found. Make sure your app has been registered.'
+    );
+  }
+
   if (!uid) {
     ctx.throw(403, 'You have to sign in to use this feature.');
   }
@@ -254,6 +270,7 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
       $set: Object.assign(userInfo, {
         updatedAt: moment().unix(),
         updatedBy: uid,
+        appId,
       }),
     },
   ];

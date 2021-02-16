@@ -25,7 +25,7 @@ const router = Router => {
   router
     .get('/:collection/count', disableUserQuery(), count) // get count of a collection
     .get(
-      '/:collection/distinct',
+      '/:collection/findDistinct',
       disableUserQuery(),
       validate(['distinct']),
       findDistinct
