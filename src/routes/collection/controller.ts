@@ -114,7 +114,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
     where: _where = JSON.stringify({}),
-    populated: _populated = JSON.stringify({}),
+    populated: _populated = JSON.stringify([]),
   } = ctx.request.query;
 
   let where = JSON.parse(_where);
@@ -134,6 +134,20 @@ export const findMany = async (ctx: Context): Promise<void> => {
   ctx.body = records.map((item: genericObject) => {
     return _.omit(item.toJSON(), ['_id']);
   });
+};
+
+/**
+ * Get distinct of a field from a collection
+ * @param ctx Context
+ */
+export const findDistinct = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const { distinct } = ctx.request.query;
+
+  const Model = createDynamicModels(collection);
+  const records = await Model.find().distinct(distinct);
+
+  ctx.body = records;
 };
 
 /**

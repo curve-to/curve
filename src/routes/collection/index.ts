@@ -9,12 +9,14 @@ import {
   updateMany,
   count,
   sum,
+  findDistinct,
 } from './controller';
 import {
   disableUserQuery,
   requireAdmin,
   requireCurrentUser,
   requireLogin,
+  validate,
 } from '../../middleware/validate';
 
 const router = Router => {
@@ -22,6 +24,12 @@ const router = Router => {
 
   router
     .get('/:collection/count', disableUserQuery(), count) // get count of a collection
+    .get(
+      '/:collection/distinct',
+      disableUserQuery(),
+      validate(['distinct']),
+      findDistinct
+    ) // get distinct of a field from a collection
     .post('/:collection/sum', disableUserQuery(), sum) // sum total of a specific field of a collection
     .get('/:collection/:documentId', disableUserQuery(), find) // get details of a document
     .put(
