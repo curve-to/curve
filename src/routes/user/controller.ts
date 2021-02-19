@@ -2,7 +2,6 @@ import * as mongoose from 'mongoose';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import * as moment from 'moment';
-import * as crypto from 'crypto';
 import * as _ from 'underscore';
 import fetch from 'node-fetch';
 import { Context } from 'koa';

@@ -25,7 +25,12 @@ export const decodeJwt = (ctx: Context): any => {
   if (!authorization || !authorization.includes('bearer ')) return {};
 
   const token = authorization.split(' ')[1];
-  return jwt.decode(token);
+
+  try {
+    return jwt.verify(token, config.database.SECRET);
+  } catch (error) {
+    return ctx.throw(403, 'Token is expired. Please login again.');
+  }
 };
 
 export const jwtMiddleware = koajwt({ secret: config.database.SECRET }).unless({
