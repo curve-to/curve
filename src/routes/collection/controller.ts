@@ -124,8 +124,6 @@ export const findMany = async (ctx: Context): Promise<void> => {
 
   const populate = getPopulated(_populate);
 
-  console.log(populate);
-
   const Model = createDynamicModels(collection);
   const records = await Model.find(where, excludeFields(['__v'], exclude))
     .populate(populate)
