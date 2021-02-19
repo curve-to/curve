@@ -25,8 +25,8 @@ const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
 };
 
 // Populate(expand) fields from another collection
-const getPopulate = (_populated: string) => {
-  return JSON.parse(_populated).map((item: populatedObject) => {
+const getPopulate = (_populate: string) => {
+  return JSON.parse(_populate).map((item: populatedObject) => {
     createDynamicModels(item.model);
     item.select = item.model === 'users' ? '-__v -password' : '-__v';
     return item;
@@ -91,12 +91,12 @@ export const find = async (ctx: Context): Promise<void> => {
     populate: _populate = JSON.stringify({}),
   } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
-  const populate = getPopulate(_populate);
+  const populate = getPopulate(_populate as string);
 
   const Model = createDynamicModels(collection);
   const record = await Model.findOne(
     { _id: id },
-    excludeFields(['__v'], exclude)
+    excludeFields(['__v'], exclude as string)
   ).populate(populate);
 
   ctx.body = record ? _.omit(record.toJSON(), ['_id']) : {};
@@ -117,18 +117,21 @@ export const findMany = async (ctx: Context): Promise<void> => {
     populate: _populate = JSON.stringify([]),
   } = ctx.request.query;
 
-  let where = JSON.parse(_where);
+  let where = JSON.parse(_where as string);
   if (where.createdAt) {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
-  const populate = getPopulate(_populate);
+  const populate = getPopulate(_populate as string);
 
   const Model = createDynamicModels(collection);
-  const records = await Model.find(where, excludeFields(['__v'], exclude))
+  const records = await Model.find(
+    where,
+    excludeFields(['__v'], exclude as string)
+  )
     .populate(populate)
     .sort({ $natural: sortOrder })
-    .skip((pageNo - 1) * +pageSize)
+    .skip(((pageNo as number) - 1) * +pageSize)
     .limit(+pageSize);
 
   ctx.body = records.map((item: genericObject) => {
@@ -144,7 +147,7 @@ export const findDistinct = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { distinct, where: _where = JSON.stringify({}) } = ctx.request.query;
 
-  let where = JSON.parse(_where);
+  let where = JSON.parse(_where as string);
   if (where.createdAt) {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
@@ -237,7 +240,7 @@ export const count = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { where: _where = JSON.stringify({}) } = ctx.request.query;
 
-  let where = JSON.parse(_where);
+  let where = JSON.parse(_where as string);
   if (where.createdAt) {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
