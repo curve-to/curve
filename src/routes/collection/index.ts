@@ -10,6 +10,7 @@ import {
   count,
   sum,
   findDistinct,
+  random,
 } from './controller';
 import {
   disableUserQuery,
@@ -23,6 +24,7 @@ const router = Router => {
   const router = new Router({ prefix: '/collection' });
 
   router
+    .get('/:collection/random', disableUserQuery(), random) // get random documents of a collection
     .get('/:collection/count', disableUserQuery(), count) // get count of a collection
     .get(
       '/:collection/findDistinct',

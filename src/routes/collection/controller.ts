@@ -290,3 +290,32 @@ export const sum = async (ctx: Context): Promise<void> => {
 
   ctx.body = result;
 };
+
+/**
+ * Get random documents of a collection
+ * @param ctx Context
+ */
+export const random = async (ctx: Context): Promise<void> => {
+  const { collection } = ctx.params;
+  const {
+    exclude, // string[] fields to exclude, e.g. field1,field2,field3
+    where: _where = JSON.stringify({}),
+    size = 20,
+  } = ctx.request.query;
+
+  let where = JSON.parse(_where as string);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
+  }
+
+  const Model = createDynamicModels(collection);
+  const records = await Model.aggregate([
+    { $match: where },
+    { $sample: { size: +size } },
+  ]);
+
+  ctx.body = records.map((item: genericObject) => {
+    item.id = item._id;
+    return _.omit(item, ['_id', '__v'].concat(exclude?.split(',') || []));
+  });
+};
