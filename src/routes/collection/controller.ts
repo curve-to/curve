@@ -230,8 +230,15 @@ export const updateMany = async (ctx: Context): Promise<void> => {
  */
 export const count = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
+  const { where: _where = JSON.stringify({}) } = ctx.request.query;
+
+  let where = JSON.parse(_where);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
+  }
+
   const Model = createDynamicModels(collection);
-  const response = await Model.countDocuments();
+  const response = await Model.countDocuments(where);
   ctx.body = response;
 };
 
