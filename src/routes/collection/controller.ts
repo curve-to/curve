@@ -28,7 +28,7 @@ const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
 const getPopulated = (_populated: string) => {
   return JSON.parse(_populated).map((item: populatedObject) => {
     createDynamicModels(item.model);
-    item.select = item.model === 'users' ? '-_id -__v -password' : '-_id -__v';
+    item.select = item.model === 'users' ? '-__v -password' : '-__v';
     return item;
   });
 };
@@ -88,16 +88,16 @@ export const find = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const {
     exclude,
-    populated: _populated = JSON.stringify({}),
+    populate: _populate = JSON.stringify({}),
   } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
-  const populated = getPopulated(_populated);
+  const populate = getPopulated(_populate);
 
   const Model = createDynamicModels(collection);
   const record = await Model.findOne(
     { _id: id },
     excludeFields(['__v'], exclude)
-  ).populate(populated);
+  ).populate(populate);
 
   ctx.body = record ? _.omit(record.toJSON(), ['_id']) : {};
 };
@@ -114,7 +114,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
     where: _where = JSON.stringify({}),
-    populated: _populated = JSON.stringify([]),
+    populate: _populate = JSON.stringify([]),
   } = ctx.request.query;
 
   let where = JSON.parse(_where);
@@ -122,11 +122,13 @@ export const findMany = async (ctx: Context): Promise<void> => {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
-  const populated = getPopulated(_populated);
+  const populate = getPopulated(_populate);
+
+  console.log(populate);
 
   const Model = createDynamicModels(collection);
   const records = await Model.find(where, excludeFields(['__v'], exclude))
-    .populate(populated)
+    .populate(populate)
     .sort({ $natural: sortOrder })
     .skip((pageNo - 1) * +pageSize)
     .limit(+pageSize);

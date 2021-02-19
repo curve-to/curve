@@ -29,7 +29,7 @@ export const decodeJwt = (ctx: Context): any => {
   try {
     return jwt.verify(token, config.database.SECRET);
   } catch (error) {
-    return ctx.throw(403, 'Token is expired. Please login again.');
+    return ctx.throw(403, 'Token has expired. Please login again.');
   }
 };
 
