@@ -142,10 +142,15 @@ export const findMany = async (ctx: Context): Promise<void> => {
  */
 export const findDistinct = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { distinct } = ctx.request.query;
+  const { distinct, where: _where = JSON.stringify({}) } = ctx.request.query;
+
+  let where = JSON.parse(_where);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
+  }
 
   const Model = createDynamicModels(collection);
-  const records = await Model.find().distinct(distinct);
+  const records = await Model.find(where).distinct(distinct);
 
   ctx.body = records;
 };
