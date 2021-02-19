@@ -25,7 +25,7 @@ const excludeFields = (fieldsBySystem: string[], fieldsByUser: string) => {
 };
 
 // Populate(expand) fields from another collection
-const getPopulated = (_populated: string) => {
+const getPopulate = (_populated: string) => {
   return JSON.parse(_populated).map((item: populatedObject) => {
     createDynamicModels(item.model);
     item.select = item.model === 'users' ? '-__v -password' : '-__v';
@@ -91,7 +91,7 @@ export const find = async (ctx: Context): Promise<void> => {
     populate: _populate = JSON.stringify({}),
   } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
-  const populate = getPopulated(_populate);
+  const populate = getPopulate(_populate);
 
   const Model = createDynamicModels(collection);
   const record = await Model.findOne(
@@ -122,7 +122,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
-  const populate = getPopulated(_populate);
+  const populate = getPopulate(_populate);
 
   const Model = createDynamicModels(collection);
   const records = await Model.find(where, excludeFields(['__v'], exclude))
