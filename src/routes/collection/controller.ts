@@ -316,6 +316,9 @@ export const random = async (ctx: Context): Promise<void> => {
 
   ctx.body = records.map((item: genericObject) => {
     item.id = item._id;
-    return _.omit(item, ['_id', '__v'].concat(exclude?.split(',') || []));
+    return _.omit(
+      item,
+      ['_id', '__v'].concat((exclude as string)?.split(',') || [])
+    );
   });
 };
