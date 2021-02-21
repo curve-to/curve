@@ -110,12 +110,15 @@ export const findMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const {
     exclude, // string[] fields to exclude, e.g. field1,field2,field3
-    pageSize = 20,
+    pageSize: _pageSize = 20,
     pageNo = 1,
     sortOrder = -1, // 1: ascending, -1: descending
     where: _where = JSON.stringify({}),
     populate: _populate = JSON.stringify([]),
   } = ctx.request.query;
+
+  // avoid user set too large pagesize to slow down our server
+  const pageSize = +_pageSize > 3000 ? 3000 : +_pageSize;
 
   let where = JSON.parse(_where as string);
   if (where.createdAt) {
@@ -131,8 +134,8 @@ export const findMany = async (ctx: Context): Promise<void> => {
   )
     .populate(populate)
     .sort({ $natural: sortOrder })
-    .skip(((pageNo as number) - 1) * +pageSize)
-    .limit(+pageSize);
+    .skip(((pageNo as number) - 1) * pageSize)
+    .limit(pageSize);
 
   ctx.body = records.map((item: genericObject) => {
     return _.omit(item.toJSON(), ['_id']);
