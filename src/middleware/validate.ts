@@ -1,6 +1,7 @@
 import { Context } from 'koa';
 import { decodeJwt } from './auth';
 import { createDynamicModels } from '../common';
+import constants from '../config/constants';
 
 /**
  * Validate fields of a specific route
@@ -16,7 +17,7 @@ export const validate = (fields: string[]) => {
 
     for (const field of fields) {
       if (!!field && !params.includes(field)) {
-        return ctx.throw(400, `Required field ${field} is not provided`);
+        return ctx.throw(400, `Required field ${field} is not provided.`);
       }
     }
 
@@ -49,7 +50,7 @@ export const requireAdmin = () => {
     const { role } = decodeJwt(ctx);
 
     // If the route requires admin privileges but user is not an admin, throw an error
-    if (role !== 1) {
+    if (role !== constants.ROLES.ADMIN) {
       ctx.throw(
         403,
         'You are not allowed to perform this action. Are you an admin?'
@@ -68,7 +69,7 @@ export const requireCurrentUser = () => {
     const { collection, documentId: id } = ctx.params;
     const { role, uid } = decodeJwt(ctx);
 
-    if (role !== 1) {
+    if (role !== constants.ROLES.ADMIN) {
       const Model = createDynamicModels(collection);
       const record = await Model.findOne({ _id: id }).lean();
 
@@ -89,7 +90,7 @@ export const requireLogin = () => {
 
     // if there's no token provided, or user has no role, throw an error
     if (role == null) {
-      ctx.throw(403, 'You must log in to perform this action');
+      ctx.throw(403, 'You must log in to perform this action.');
     }
 
     return await next();

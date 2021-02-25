@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { Context } from 'koa';
 import config from '../config';
 
-const whitelist = [/^\/user/, /\/collection/];
+const whitelist = [/^\/user/, /\/collection/, /\/superpower/];
 
 export const tokenValidation = async (
   ctx: Context,
@@ -11,7 +11,7 @@ export const tokenValidation = async (
 ): Promise<void> => {
   return next().catch(err => {
     if (err.status === 401) {
-      return ctx.throw(401, 'token is invalid');
+      return ctx.throw(401, 'token is invalid.');
     }
 
     throw err;

@@ -7,7 +7,7 @@ import fetch from 'node-fetch';
 import { Context } from 'koa';
 import { collections } from '../../config/database';
 import config from '../../config';
-import { THIRD_PARTY_URLS } from '../../config/constants';
+import constants from '../../config/constants';
 import { decodeJwt } from '../../middleware/auth';
 
 const schema = new mongoose.Schema(
@@ -121,21 +121,21 @@ const generateJWTToken = (user: genericObject) => {
  */
 export const register = async (ctx: Context): Promise<void> => {
   if (!config.registrationIsOpen) {
-    ctx.throw(403, 'Registration is not open');
+    ctx.throw(403, 'Registration is not open.');
   }
 
   const { username, password, email } = ctx.request.body;
 
   if (!validateUsername(username)) {
-    ctx.throw(403, 'Invalid username');
+    ctx.throw(403, 'Invalid username.');
   }
 
   if (!password) {
-    ctx.throw(403, 'Invalid password');
+    ctx.throw(403, 'Invalid password.');
   }
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'Invalid email address');
+    ctx.throw(403, 'Invalid email address.');
   }
 
   const _user = await UserModel.findOne({
@@ -143,14 +143,14 @@ export const register = async (ctx: Context): Promise<void> => {
   });
 
   if (_user) {
-    ctx.throw(403, 'The username has been taken');
+    ctx.throw(403, 'The username has been taken.');
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   await registerAsNewUser({ username, hashedPassword });
 
-  ctx.body = `User ${username} has successfully registered`;
+  ctx.body = `User ${username} has successfully registered.`;
 };
 
 /**
@@ -188,7 +188,7 @@ export const login = async (ctx: Context): Promise<void> => {
     }
   }
 
-  ctx.throw(403, 'Username and password mismatch');
+  ctx.throw(403, 'Username and password mismatch.');
 };
 
 /**
@@ -199,7 +199,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'Invalid email address');
+    ctx.throw(403, 'Invalid email address.');
   }
 
   const _user = await UserModel.findOne({
@@ -215,7 +215,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   } else {
     ctx.throw(
       403,
-      `User ${username} is not found or the email given and username mismatch`
+      `User ${username} is not found or the email given and username mismatch.`
     );
   }
 };
@@ -238,7 +238,7 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
   }
 
   const query = `?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
-  const code2Session = `${THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
+  const code2Session = `${constants.THIRD_PARTY_URLS.WECHAT_LOGIN}${query}`;
   const response = await fetch(code2Session);
 
   const { errcode, errmsg, openid } = await response.json();
