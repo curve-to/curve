@@ -34,7 +34,16 @@ schema.virtual('uid').get(function () {
 export const UserModel = collections.model('users', schema);
 
 /**
- * validate email address
+ * Validate username
+ * @param username username
+ */
+const validateUsername = (username: string) => {
+  const re = /^[a-zA-Z0-9_-]{4,16}$/;
+  return re.test(username);
+};
+
+/**
+ * Validate email address
  * @param email email address
  */
 const validateEmail = (email: string) => {
@@ -116,6 +125,14 @@ export const register = async (ctx: Context): Promise<void> => {
   }
 
   const { username, password, email } = ctx.request.body;
+
+  if (!validateUsername(username)) {
+    ctx.throw(403, 'Invalid username');
+  }
+
+  if (!password) {
+    ctx.throw(403, 'Invalid password');
+  }
 
   if (!validateEmail(email)) {
     ctx.throw(403, 'Invalid email address');
