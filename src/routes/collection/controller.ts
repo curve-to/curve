@@ -117,7 +117,7 @@ export const findMany = async (ctx: Context): Promise<void> => {
     populate: _populate = JSON.stringify([]),
   } = ctx.request.query;
 
-  // avoid user set too large pagesize to slow down our server
+  // avoid user setting very large page size to slow down our server
   const pageSize = +_pageSize > 3000 ? 3000 : +_pageSize;
 
   let where = JSON.parse(_where as string);
