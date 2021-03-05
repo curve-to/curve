@@ -2,6 +2,7 @@ import { Context } from 'koa';
 import { decodeJwt } from './auth';
 import { createDynamicModels } from '../common';
 import constants from '../config/constants';
+import config from '../config';
 
 /**
  * Validate fields of a specific route
@@ -34,6 +35,26 @@ export const disableUserQuery = () => {
 
     // if there's no token provided, or user has no role, throw an error
     if (collection == 'users') {
+      ctx.throw(403, 'You are not allowed to perform this action.');
+    }
+
+    return await next();
+  };
+};
+
+/**
+ * Disable table operations
+ */
+export const disableTableOperations = () => {
+  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
+    const { role } = decodeJwt(ctx);
+    const { collection } = ctx.params;
+
+    // Only users with admin privileges can operate
+    if (
+      role !== constants.ROLES.ADMIN &&
+      config.bannedTables.includes(collection)
+    ) {
       ctx.throw(403, 'You are not allowed to perform this action.');
     }
 

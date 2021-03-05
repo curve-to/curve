@@ -14,6 +14,7 @@ import {
 } from './controller';
 import {
   disableUserQuery,
+  disableTableOperations,
   requireAdmin,
   requireCurrentUser,
   requireLogin,
@@ -37,6 +38,7 @@ const router = Router => {
     .put(
       '/:collection/updateMany',
       disableUserQuery(),
+      disableTableOperations(),
       requireLogin(),
       requireAdmin(), // for updating multiple documents, require admin. this helps hackers who batch update other documents
       updateMany
@@ -44,6 +46,7 @@ const router = Router => {
     .put(
       '/:collection/:documentId',
       disableUserQuery(),
+      disableTableOperations(),
       requireLogin(),
       requireCurrentUser(), // for updating single document, require current user
       update
@@ -51,6 +54,7 @@ const router = Router => {
     .delete(
       '/:collection/:documentId',
       disableUserQuery(),
+      disableTableOperations(),
       requireLogin(),
       requireCurrentUser(), // for deleting single document, require current user
       remove
@@ -58,14 +62,22 @@ const router = Router => {
     .delete(
       '/:collection',
       disableUserQuery(),
+      disableTableOperations(),
       requireLogin(),
       requireAdmin(), // for deleting multiple documents, require admin. this helps hackers who batch delete other documents
       removeMany
     ) // remove multiple documents
-    .post('/:collection', disableUserQuery(), requireLogin(), create) // create a document
+    .post(
+      '/:collection',
+      disableUserQuery(),
+      disableTableOperations(),
+      requireLogin(),
+      create
+    ) // create a document
     .post(
       '/:collection/createMany',
       disableUserQuery(),
+      disableTableOperations(),
       requireLogin(),
       createMany
     ) // create multiple documents
