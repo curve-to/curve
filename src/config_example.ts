@@ -6,7 +6,7 @@ export default {
     USER: '',
     PASSWORD: '',
   },
-  registrationIsOpen: false, // allow registration
+  registrationIsOpen: false, // Allow registration
   bodyParserConfig: {
     multipart: true,
     urlencoded: true,
@@ -15,8 +15,9 @@ export default {
       maxFileSize: 500 * 1024 * 1024, // 5M
     },
   },
-  bypassCorsList: [], // whitelist for cors
+  bypassCorsList: [], // Whitelist for cors
   tokenExpiration: '90d',
+  bannedTables: [], // Here to specify a number of tables that are not allowed to operate
   // WeChat mini program appId, make sure one is saved here before you use signInWithWeChat method
   appIds: {
     wxxxxxxxxxxxxxx: 'xxxxxxxxxxxxxxxxxxxxxxx', // WeChat mini program app secret
