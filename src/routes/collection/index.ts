@@ -48,7 +48,7 @@ const router = Router => {
       disableUserQuery(),
       disableTableOperations(),
       requireLogin(),
-      requireCurrentUser(), // for updating single document, require current user
+      requireCurrentUser(), // For updating single document, require current user
       update
     ) // update a document
     .delete(
@@ -56,7 +56,7 @@ const router = Router => {
       disableUserQuery(),
       disableTableOperations(),
       requireLogin(),
-      requireCurrentUser(), // for deleting single document, require current user
+      requireCurrentUser(), // For deleting single document, require current user
       remove
     ) // remove a document
     .delete(
@@ -64,9 +64,9 @@ const router = Router => {
       disableUserQuery(),
       disableTableOperations(),
       requireLogin(),
-      requireAdmin(), // for deleting multiple documents, require admin. this helps hackers who batch delete other documents
+      requireAdmin(), // For deleting multiple documents, require admin. This helps prevent hackers who batch delete other documents
       removeMany
-    ) // remove multiple documents
+    ) // Remove multiple documents
     .post(
       '/:collection',
       disableUserQuery(),

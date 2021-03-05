@@ -178,7 +178,7 @@ export const remove = async (ctx: Context): Promise<void> => {
  */
 export const removeMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { where = {} } = ctx.request.body; // if where is an empty object, remove all
+  const { where = {} } = ctx.request.body; // If where is an empty object, remove all
 
   const Model = createDynamicModels(collection);
   await Model.deleteMany(where);
