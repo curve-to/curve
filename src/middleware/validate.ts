@@ -94,6 +94,10 @@ export const requireCurrentUser = () => {
       const Model = createDynamicModels(collection);
       const record = await Model.findOne({ _id: id }).lean();
 
+      if (!record) {
+        ctx.throw(404, 'Record is not found.')
+      }
+
       if (record.createdBy !== uid) {
         ctx.throw(403, 'You are not allowed to perform this action.');
       }
