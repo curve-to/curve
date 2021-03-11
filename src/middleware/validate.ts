@@ -95,7 +95,7 @@ export const requireCurrentUser = () => {
       const record = await Model.findOne({ _id: id }).lean();
 
       if (!record) {
-        ctx.throw(404, 'Record is not found.')
+        ctx.throw(404, 'Record is not found.');
       }
 
       if (record.createdBy !== uid) {

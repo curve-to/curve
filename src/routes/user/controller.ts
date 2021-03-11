@@ -127,15 +127,15 @@ export const register = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateUsername(username)) {
-    ctx.throw(403, 'Invalid username.');
+    ctx.throw(400, 'Invalid username.');
   }
 
   if (!password) {
-    ctx.throw(403, 'Invalid password.');
+    ctx.throw(400, 'Invalid password.');
   }
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'Invalid email address.');
+    ctx.throw(400, 'Invalid email address.');
   }
 
   const _user = await UserModel.findOne({
@@ -143,13 +143,14 @@ export const register = async (ctx: Context): Promise<void> => {
   });
 
   if (_user) {
-    ctx.throw(403, 'The username has been taken.');
+    ctx.throw(409, 'The username has been taken.');
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   await registerAsNewUser({ username, hashedPassword });
 
+  ctx.response.status = 201;
   ctx.body = `User ${username} has successfully registered.`;
 };
 
@@ -183,12 +184,13 @@ export const login = async (ctx: Context): Promise<void> => {
     // generate token if account info matches
     if (hasUser) {
       const result = generateJWTToken(_user);
+      ctx.response.status = 201;
       ctx.body = result;
       return;
     }
   }
 
-  ctx.throw(403, 'Username and password mismatch.');
+  ctx.throw(401, 'Username and password mismatch.');
 };
 
 /**
@@ -199,7 +201,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
   const { username, password, email } = ctx.request.body;
 
   if (!validateEmail(email)) {
-    ctx.throw(403, 'Invalid email address.');
+    ctx.throw(400, 'Invalid email address.');
   }
 
   const _user = await UserModel.findOne({
@@ -214,7 +216,7 @@ export const changePassword = async (ctx: Context): Promise<void> => {
     ctx.body = 'ok';
   } else {
     ctx.throw(
-      403,
+      401,
       `User ${username} is not found or the email given and username mismatch.`
     );
   }
@@ -232,7 +234,7 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
 
   if (!appId || !appSecret) {
     ctx.throw(
-      403,
+      401,
       'App Id is not found. Make sure your app has been registered.'
     );
   }
@@ -244,7 +246,7 @@ export const signInWithWeChat = async (ctx: Context): Promise<void> => {
   const { errcode, errmsg, openid } = await response.json();
 
   if (!openid) {
-    ctx.throw(403, `Login failed. errcode: ${errcode}. ${errmsg}`);
+    ctx.throw(401, `Login failed. errcode: ${errcode}. ${errmsg}`);
   }
 
   const user = await UserModel.findOne({ openid, appId });
@@ -272,13 +274,13 @@ export const updateWeChatUserInfo = async (ctx: Context): Promise<void> => {
 
   if (!appId || !appSecret) {
     ctx.throw(
-      403,
+      400,
       'App Id is not found. Make sure your app has been registered.'
     );
   }
 
   if (!uid) {
-    ctx.throw(403, 'You have to sign in to use this feature.');
+    ctx.throw(401, 'You have to sign in to use this feature.');
   }
 
   const update: genericObject = [

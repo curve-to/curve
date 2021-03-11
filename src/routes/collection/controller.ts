@@ -50,6 +50,7 @@ export const create = async (ctx: Context): Promise<void> => {
   };
 
   const response = await new Model(params).save();
+  ctx.response.status = 201;
   ctx.body = _.omit(response.toJSON(), ['_id', '__v']);
 };
 
@@ -75,6 +76,7 @@ export const createMany = async (ctx: Context): Promise<void> => {
   });
 
   const response = await Model.insertMany(documents);
+  ctx.response.status = 201;
   ctx.body = response.map((item: genericObject) =>
     _.omit(item.toJSON(), ['_id', '__v'])
   );
@@ -169,6 +171,7 @@ export const remove = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const Model = createDynamicModels(collection);
   await Model.find({ _id: id }).deleteOne();
+  ctx.response.status = 204;
   ctx.body = 'ok';
 };
 
@@ -182,6 +185,7 @@ export const removeMany = async (ctx: Context): Promise<void> => {
 
   const Model = createDynamicModels(collection);
   await Model.deleteMany(where);
+  ctx.response.status = 204;
   ctx.body = 'ok';
 };
 
