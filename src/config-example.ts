@@ -23,4 +23,9 @@ export default {
   appIds: {
     wxxxxxxxxxxxxxx: 'xxxxxxxxxxxxxxxxxxxxxxx', // WeChat mini program app secret
   },
+  upyunConfig: {
+    service: '',
+    operator: '',
+    password: '',
+  },
 };
