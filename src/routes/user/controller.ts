@@ -213,7 +213,6 @@ export const changePassword = async (ctx: Context): Promise<void> => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     const update = { password: hashedPassword };
     await UserModel.findOneAndUpdate({ username }, update);
-    ctx.body = 'ok';
   } else {
     ctx.throw(
       401,

@@ -175,7 +175,6 @@ export const remove = async (ctx: Context): Promise<void> => {
   const Model = createDynamicModels(collection);
   await Model.find({ _id: id }).deleteOne();
   ctx.response.status = 204;
-  ctx.body = 'ok';
 };
 
 /**
@@ -189,7 +188,6 @@ export const removeMany = async (ctx: Context): Promise<void> => {
   const Model = createDynamicModels(collection);
   await Model.deleteMany(where);
   ctx.response.status = 204;
-  ctx.body = 'ok';
 };
 
 /**

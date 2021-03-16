@@ -13,6 +13,7 @@ const schema = new mongoose.Schema(
     width: Number,
     height: Number,
     fileType: String,
+    fileExtension: String,
     size: Number,
     path: String,
     createdAt: String,
@@ -45,10 +46,10 @@ export const upload = async (ctx: Context): Promise<void> => {
 
   try {
     const path = `/${fileName}`;
-    const res = await upyunClient.putFile(path, stream);
+    const upyunResponse = await upyunClient.putFile(path, stream);
     const result =
-      res instanceof Object
-        ? { width: res.width, height: res.height, path }
+      upyunResponse instanceof Object
+        ? { width: upyunResponse.width, height: upyunResponse.height, path }
         : { path };
 
     const params = {
@@ -81,5 +82,28 @@ export const find = async (ctx: Context): Promise<void> => {
     ctx.body = _.omit(record.toJSON(), ['__v']);
   } catch (error) {
     ctx.body = {};
+  }
+};
+
+/**
+ * Remove file
+ * @param ctx Context
+ */
+export const remove = async (ctx: Context): Promise<void> => {
+  const { id } = ctx.request.body;
+
+  try {
+    const record = await FileModel.findOne({ _id: id });
+
+    const upyunFilePath = record['path'];
+    const upyunResponse = await upyunClient.deleteFile(upyunFilePath);
+
+    if (!upyunResponse) {
+      ctx.throw(409, 'File is deleted unsuccessfully.');
+    }
+
+    ctx.response.status = 204;
+  } catch (error) {
+    ctx.throw(404, `File (${id}) is not found.`);
   }
 };
