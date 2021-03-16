@@ -90,18 +90,21 @@ export const find = async (ctx: Context): Promise<void> => {
   const { collection, documentId: id } = ctx.params;
   const {
     exclude,
-    populate: _populate = JSON.stringify({}),
+    populate: _populate = JSON.stringify([]),
   } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
   const populate = getPopulate(_populate as string);
 
   const Model = createDynamicModels(collection);
-  const record = await Model.findOne(
-    { _id: id },
-    excludeFields(['__v'], exclude as string)
-  ).populate(populate);
-
-  ctx.body = record ? _.omit(record.toJSON(), ['_id']) : {};
+  try {
+    const record = await Model.findOne(
+      { _id: id },
+      excludeFields(['__v'], exclude as string)
+    ).populate(populate);
+    ctx.body = _.omit(record.toJSON(), ['_id']);
+  } catch (error) {
+    ctx.body = {};
+  }
 };
 
 /**

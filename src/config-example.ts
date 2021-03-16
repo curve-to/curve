@@ -15,6 +15,7 @@ export default {
     formidable: {
       maxFileSize: 500 * 1024 * 1024, // 5M
     },
+    jsonLimit: '1mb',
   },
   bypassCorsList: [], // Whitelist for cors
   tokenExpiration: '90d',
