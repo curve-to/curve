@@ -1,10 +1,12 @@
-import { upload } from './controller';
+import { upload, find } from './controller';
 import { requireLogin } from '../../middleware/validate';
 
 const router = Router => {
-  const router = new Router({ prefix: '/file' });
+  const router = new Router({ prefix: '/files' });
 
-  router.get('/upload', requireLogin(), upload); // Get all collection names
+  router
+    .post('/upload', requireLogin(), upload) // Get all collection names
+    .get('/:fileId', requireLogin(), find);
   return router;
 };
 

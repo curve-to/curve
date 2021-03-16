@@ -25,16 +25,17 @@ const router = Router => {
   const router = new Router({ prefix: '/collection' });
 
   router
-    .get('/:collection/random', disableUserQuery(), random) // get random documents of a collection
-    .get('/:collection/count', disableUserQuery(), count) // get count of a collection
+    .get('/:collection/random', disableUserQuery(), requireLogin(), random) // get random documents of a collection
+    .get('/:collection/count', disableUserQuery(), requireLogin(), count) // get count of a collection
     .get(
       '/:collection/findDistinct',
       disableUserQuery(),
+      requireLogin(),
       validate(['distinct']),
       findDistinct
     ) // get distinct of a field from a collection
-    .post('/:collection/sum', disableUserQuery(), sum) // sum total of a specific field of a collection
-    .get('/:collection/:documentId', disableUserQuery(), find) // get details of a document
+    .post('/:collection/sum', disableUserQuery(), requireLogin(), sum) // sum total of a specific field of a collection
+    .get('/:collection/:documentId', disableUserQuery(), requireLogin(), find) // get details of a document
     .put(
       '/:collection/updateMany',
       disableUserQuery(),
@@ -81,7 +82,7 @@ const router = Router => {
       requireLogin(),
       createMany
     ) // create multiple documents
-    .get('/:collection', disableUserQuery(), findMany); // get documents of a collection
+    .get('/:collection', disableUserQuery(), requireLogin(), findMany); // get documents of a collection
 
   return router;
 };
