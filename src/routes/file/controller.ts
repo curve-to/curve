@@ -41,9 +41,10 @@ export const upload = async (ctx: Context): Promise<void> => {
   const extension = file['name'].split('.').pop();
   const fileType = file['type'];
   const id = nanoid(10);
-  const fileName = useRandomFileName
-    ? `${id}.${extension}`
-    : encodeURIComponent(file['name']);
+  const fileName =
+    useRandomFileName === 'true'
+      ? `${id}.${extension}`
+      : encodeURIComponent(file['name']);
 
   try {
     const path = `/${fileName}`;
@@ -77,9 +78,13 @@ export const upload = async (ctx: Context): Promise<void> => {
  */
 export const find = async (ctx: Context): Promise<void> => {
   const { fileId: id } = ctx.params;
+  const { exclude } = ctx.request.query; // string[] fields to exclude, e.g. field1,field2,field3
 
   try {
-    const record = await FileModel.findOne({ _id: id });
+    const record = await FileModel.findOne(
+      { _id: id },
+      excludeFields(['__v'], exclude as string)
+    );
     ctx.body = _.omit(record.toJSON(), ['__v']);
   } catch (error) {
     ctx.body = {};
@@ -125,20 +130,42 @@ export const findMany = async (ctx: Context): Promise<void> => {
  * @param ctx Context
  */
 export const remove = async (ctx: Context): Promise<void> => {
-  const { id } = ctx.request.body;
+  const { fileId: id } = ctx.params;
+
+  let record: genericObject;
 
   try {
-    const record = await FileModel.findOne({ _id: id });
-
-    const upyunFilePath = record['path'];
-    const upyunResponse = await upyunClient.deleteFile(upyunFilePath);
-
-    if (!upyunResponse) {
-      ctx.throw(409, 'File is not deleted successfully.');
-    }
-
-    ctx.response.status = 204;
+    record = await FileModel.findOne({ _id: id });
   } catch (error) {
     ctx.throw(404, `File (${id}) is not found.`);
   }
+
+  const upyunFilePath = record['path'];
+  const upyunResponse = await upyunClient.deleteFile(upyunFilePath);
+
+  if (!upyunResponse) {
+    ctx.throw(409, 'File is not deleted successfully.');
+  }
+
+  await FileModel.find({ _id: id }).deleteOne();
+
+  ctx.response.status = 204;
+};
+
+/**
+ * Get total count of files
+ * @param ctx Context
+ */
+export const count = async (ctx: Context): Promise<void> => {
+  const { where: _where = JSON.stringify({}) } = ctx.request.query;
+
+  let where = JSON.parse(_where as string);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
+  }
+
+  console.log(123);
+
+  const response = await FileModel.countDocuments(where);
+  ctx.body = response;
 };
