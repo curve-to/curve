@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import upyunClient from './upyun-client';
 import { decodeJwt } from '../../middleware/auth';
 import { collections } from '../../config/database';
+import { excludeFields, getDateRange } from '../../common';
 
 const schema = new mongoose.Schema(
   {
@@ -86,6 +87,40 @@ export const find = async (ctx: Context): Promise<void> => {
 };
 
 /**
+ * Get a list of all files
+ * @param ctx Context
+ */
+export const findMany = async (ctx: Context): Promise<void> => {
+  const {
+    exclude, // string[] fields to exclude, e.g. field1,field2,field3
+    pageSize: _pageSize = 20,
+    pageNo = 1,
+    sortOrder = -1, // 1: ascending, -1: descending
+    where: _where = JSON.stringify({}),
+  } = ctx.request.query;
+
+  // avoid user setting very large page size to slow down our server
+  const pageSize = +_pageSize > 3000 ? 3000 : +_pageSize;
+
+  let where = JSON.parse(_where as string);
+  if (where.createdAt) {
+    where = { ...where, ...getDateRange(where.createdAt) };
+  }
+
+  const records = await FileModel.find(
+    where,
+    excludeFields(['__v'], exclude as string)
+  )
+    .sort({ $natural: sortOrder })
+    .skip(((pageNo as number) - 1) * pageSize)
+    .limit(pageSize);
+
+  ctx.body = records.map((item: genericObject) => {
+    return _.omit(item.toJSON(), ['_id']);
+  });
+};
+
+/**
  * Remove file
  * @param ctx Context
  */
@@ -99,7 +134,7 @@ export const remove = async (ctx: Context): Promise<void> => {
     const upyunResponse = await upyunClient.deleteFile(upyunFilePath);
 
     if (!upyunResponse) {
-      ctx.throw(409, 'File is deleted unsuccessfully.');
+      ctx.throw(409, 'File is not deleted successfully.');
     }
 
     ctx.response.status = 204;

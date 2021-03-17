@@ -54,3 +54,34 @@ export const getDateRange = (dateRange = {}): genericObject => {
 
   return { createdAt };
 };
+
+/**
+ * Hide fields from results
+ * @param fieldsBySystem an array of fields to be excluded by system
+ * @param fieldsByUser string of fields to be excluded by user. Set via query params
+ * @returns an object of excluded fields
+ */
+export const excludeFields = (
+  fieldsBySystem: string[],
+  fieldsByUser: string
+): genericObject => {
+  const fields = fieldsByUser
+    ? fieldsBySystem.concat(fieldsByUser.split(','))
+    : fieldsBySystem;
+
+  const excluded = fields.reduce((result, field) => {
+    result[field] = false;
+    return result;
+  }, {});
+
+  return excluded;
+};
+
+// Populate(expand) fields from another collection
+export const getPopulate = (_populate: string): string[] => {
+  return JSON.parse(_populate).map((item: populatedObject) => {
+    createDynamicModels(item.model);
+    item.select = item.model === 'users' ? '-__v -password' : '-__v';
+    return item;
+  });
+};
