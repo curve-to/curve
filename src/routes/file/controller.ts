@@ -164,8 +164,6 @@ export const count = async (ctx: Context): Promise<void> => {
     where = { ...where, ...getDateRange(where.createdAt) };
   }
 
-  console.log(123);
-
   const response = await FileModel.countDocuments(where);
   ctx.body = response;
 };
