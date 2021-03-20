@@ -3,8 +3,6 @@ import * as mongoose from 'mongoose';
 import { NodeVM, VMScript } from 'vm2';
 import { collections } from '../../config/database';
 
-const vm = new NodeVM();
-
 const schema = new mongoose.Schema(
   {
     name: String,
@@ -30,6 +28,7 @@ const CloudFunctionModel = collections.model(
  */
 export const invoke = async (ctx: Context): Promise<void> => {
   const { name } = ctx.params;
+  const vm = new NodeVM();
 
   const record = await CloudFunctionModel.findOne({ name });
 
