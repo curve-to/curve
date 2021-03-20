@@ -27,14 +27,14 @@ export const validate = (fields: string[]) => {
 };
 
 /**
- * Disable querying User collection
+ * Disable querying sensitive collections
  */
-export const disableUserQuery = () => {
+export const disableSensitiveQuery = () => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     const { collection } = ctx.params;
+    const sensitiveCollections = ['users', 'cloudFunctions'];
 
-    // if there's no token provided, or user has no role, throw an error
-    if (collection == 'users') {
+    if (sensitiveCollections.includes(collection)) {
       ctx.throw(403, 'You are not allowed to perform this action.');
     }
 
