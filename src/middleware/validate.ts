@@ -32,7 +32,7 @@ export const validate = (fields: string[]) => {
 export const disableSensitiveQuery = () => {
   return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
     const { collection } = ctx.params;
-    const sensitiveCollections = ['users', 'cloudFunctions'];
+    const sensitiveCollections = ['users', 'cloudFunctions', 'files'];
 
     if (sensitiveCollections.includes(collection)) {
       ctx.throw(403, 'You are not allowed to perform this action.');
