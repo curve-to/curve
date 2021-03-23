@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import * as _ from 'underscore';
 import fetch from 'node-fetch';
 import { Context } from 'koa';
-import { collections } from '../../config/database';
+import { coreCollections } from '../../config/database';
 import config from '../../config';
 import constants from '../../config/constants';
 import { decodeJwt } from '../../middleware/auth';
@@ -31,7 +31,7 @@ schema.virtual('uid').get(function () {
   return this._id;
 });
 
-export const UserModel = collections.model('users', schema);
+export const UserModel = coreCollections.model('users', schema);
 
 /**
  * Validate username

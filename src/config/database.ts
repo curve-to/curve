@@ -12,3 +12,4 @@ const createConn = (db: string) => {
 };
 
 export const collections = createConn('contentGroup');
+export const coreCollections = createConn('core');

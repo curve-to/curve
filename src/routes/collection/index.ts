@@ -13,7 +13,6 @@ import {
   random,
 } from './controller';
 import {
-  disableSensitiveQuery,
   disableTableOperations,
   requireAdmin,
   requireCurrentUser,
@@ -27,33 +26,28 @@ const router = Router => {
   router
     .get(
       '/:collection/random',
-      disableSensitiveQuery(),
       // requireLogin(),
       random
     ) // get random documents of a collection
     .get(
       '/:collection/count',
-      disableSensitiveQuery(),
       // requireLogin(),
       count
     ) // get count of a collection
     .get(
       '/:collection/findDistinct',
-      disableSensitiveQuery(),
       // requireLogin(),
       validate(['distinct']),
       findDistinct
     ) // get distinct of a field from a collection
-    .post('/:collection/sum', disableSensitiveQuery(), requireLogin(), sum) // sum total of a specific field of a collection
+    .post('/:collection/sum', requireLogin(), sum) // sum total of a specific field of a collection
     .get(
       '/:collection/:documentId',
-      disableSensitiveQuery(),
       // requireLogin(),
       find
     ) // get details of a document
     .put(
       '/:collection/updateMany',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       requireAdmin(), // for updating multiple documents, require admin. this helps hackers who batch update other documents
@@ -61,7 +55,6 @@ const router = Router => {
     ) // update multiple documents
     .put(
       '/:collection/:documentId',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       requireCurrentUser(), // For updating single document, require current user
@@ -69,7 +62,6 @@ const router = Router => {
     ) // update a document
     .delete(
       '/:collection/:documentId',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       requireCurrentUser(), // For deleting single document, require current user
@@ -77,7 +69,6 @@ const router = Router => {
     ) // remove a document
     .delete(
       '/:collection',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       requireAdmin(), // For deleting multiple documents, require admin. This helps prevent hackers who batch delete other documents
@@ -85,21 +76,18 @@ const router = Router => {
     ) // Remove multiple documents
     .post(
       '/:collection',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       create
     ) // create a document
     .post(
       '/:collection/createMany',
-      disableSensitiveQuery(),
       disableTableOperations(),
       requireLogin(),
       createMany
     ) // create multiple documents
     .get(
       '/:collection',
-      disableSensitiveQuery(),
       // requireLogin(),
       findMany
     ); // get documents of a collection

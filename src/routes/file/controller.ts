@@ -6,7 +6,7 @@ import * as _ from 'underscore';
 import { nanoid } from 'nanoid';
 import upyunClient from './upyun-client';
 import { decodeJwt } from '../../middleware/auth';
-import { collections } from '../../config/database';
+import { coreCollections } from '../../config/database';
 import { excludeFields, getDateRange } from '../../common';
 
 const schema = new mongoose.Schema(
@@ -26,7 +26,7 @@ const schema = new mongoose.Schema(
   }
 );
 
-export const FileModel = collections.model('files', schema);
+export const FileModel = coreCollections.model('files', schema);
 
 /**
  * Get file params and upload to UpYun

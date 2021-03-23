@@ -27,22 +27,6 @@ export const validate = (fields: string[]) => {
 };
 
 /**
- * Disable querying sensitive collections
- */
-export const disableSensitiveQuery = () => {
-  return async (ctx: Context, next: () => Promise<never>): Promise<void> => {
-    const { collection } = ctx.params;
-    const sensitiveCollections = ['users', 'cloudFunctions', 'files'];
-
-    if (sensitiveCollections.includes(collection)) {
-      ctx.throw(403, 'You are not allowed to perform this action.');
-    }
-
-    return await next();
-  };
-};
-
-/**
  * Disable table operations
  */
 export const disableTableOperations = () => {
