@@ -9,6 +9,7 @@ import {
   excludeFields,
   getPopulate,
 } from '../../common';
+import { listCollections } from '../../common';
 
 /**
  * Create a document
@@ -17,6 +18,12 @@ import {
 export const create = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { uid } = decodeJwt(ctx);
+  const collectionsInDatabase = await listCollections();
+  const hasCollection = collectionsInDatabase.includes(collection);
+
+  if (!hasCollection) {
+    ctx.throw(404, `Collection ${collection} is not found.`);
+  }
 
   const Model = createDynamicModels(collection);
 
@@ -39,6 +46,12 @@ export const createMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { body } = ctx.request;
   const { uid } = decodeJwt(ctx);
+  const collectionsInDatabase = await listCollections();
+  const hasCollection = collectionsInDatabase.includes(collection);
+
+  if (!hasCollection) {
+    ctx.throw(404, `Collection ${collection} is not found.`);
+  }
 
   const Model = createDynamicModels(collection);
 

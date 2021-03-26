@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import * as mongoose from 'mongoose';
-import { collections } from './config/database';
+import { collections, coreCollections } from './config/database';
 
 const models = {};
 
@@ -84,4 +84,14 @@ export const getPopulate = (_populate: string): string[] => {
     item.select = item.model === 'users' ? '-__v -password' : '-__v';
     return item;
   });
+};
+
+export const listCollections = async (): Promise<string[]> => {
+  const contentGroupCollections = (await collections).db
+    .listCollections()
+    .toArray();
+  const collectionNames = (await contentGroupCollections).map(
+    collection => collection.name
+  );
+  return collectionNames;
 };
