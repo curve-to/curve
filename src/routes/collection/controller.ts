@@ -10,6 +10,7 @@ import {
   getPopulate,
 } from '../../common';
 import { listCollections } from '../../common';
+import constants from '../../config/constants';
 
 /**
  * Create a document
@@ -17,11 +18,11 @@ import { listCollections } from '../../common';
  */
 export const create = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
-  const { uid } = decodeJwt(ctx);
+  const { uid, role } = decodeJwt(ctx);
   const collectionsInDatabase = await listCollections();
   const hasCollection = collectionsInDatabase.includes(collection);
 
-  if (!hasCollection) {
+  if (!hasCollection && role !== constants.ROLES.ADMIN) {
     ctx.throw(404, `Collection ${collection} is not found.`);
   }
 
@@ -45,11 +46,11 @@ export const create = async (ctx: Context): Promise<void> => {
 export const createMany = async (ctx: Context): Promise<void> => {
   const { collection } = ctx.params;
   const { body } = ctx.request;
-  const { uid } = decodeJwt(ctx);
+  const { uid, role } = decodeJwt(ctx);
   const collectionsInDatabase = await listCollections();
   const hasCollection = collectionsInDatabase.includes(collection);
 
-  if (!hasCollection) {
+  if (!hasCollection && role !== constants.ROLES.ADMIN) {
     ctx.throw(404, `Collection ${collection} is not found.`);
   }
 
